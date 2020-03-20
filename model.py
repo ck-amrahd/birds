@@ -114,25 +114,25 @@ class Model:
         # make inside box region to 1 and outside box to zeros, so when we take element-wise product with the
         # input gradient, we will just get a patch from inside the box
 
-        inside_box = torch.zeros(batch_size, self.num_channels, self.height, self.width)
+        penalty_inside_box = torch.zeros(batch_size, self.num_channels, self.height, self.width)
         for index, item in enumerate(batch_indices):
             x1, y1, x2, y2 = self.bounding_box[item]
-            inside_box[index, :, y1:y2, x1:x2] = 1.0
+            penalty_inside_box[index, :, y1:y2, x1:x2] = 1.0
 
-        inside_box = inside_box.to(self.device)
-        penalty_inside_box = inside_box * input_gradient
+        penalty_inside_box = penalty_inside_box.to(self.device)
+        penalty_inside_box = penalty_inside_box * input_gradient
         penalty_inside_box = (torch.norm(penalty_inside_box)) ** 2
 
         # make inside box to 0 and outside box to ones, so when we take element-wise product with the
         # input gradient, we will just get a patch from outside the box
 
-        inside_box = torch.ones(batch_size, self.num_channels, self.height, self.width)
+        penalty_outside_box = torch.ones(batch_size, self.num_channels, self.height, self.width)
         for index, item in enumerate(batch_indices):
             x1, y1, x2, y2 = self.bounding_box[item]
-            inside_box[index, :, y1:y2, x1:x2] = 0.0
+            penalty_outside_box[index, :, y1:y2, x1:x2] = 0.0
 
-        inside_box = inside_box.to(self.device)
-        penalty_outside_box = inside_box * input_gradient
+        penalty_outside_box = penalty_outside_box.to(self.device)
+        penalty_outside_box = penalty_outside_box * input_gradient
         penalty_outside_box = (torch.norm(penalty_outside_box)) ** 2
 
         return penalty_inside_box, penalty_outside_box
@@ -281,12 +281,14 @@ class Model:
             test_acc_list.append(test_acc)
             print('test Loss: {:.4f} Acc: {:.4f} % \n'.format(test_loss, test_acc))
 
-            best_acc = test_acc
-            best_model = model.state_dict()
-            if os.path.exists(self.checkpoint_path):
-                os.remove(self.checkpoint_path)
+            # save the best model
+            if test_acc > best_acc:
+                best_acc = test_acc
+                best_model = model.state_dict()
+                if os.path.exists(self.checkpoint_path):
+                    os.remove(self.checkpoint_path)
 
-            torch.save(best_model, self.checkpoint_path)
+                torch.save(best_model, self.checkpoint_path)
 
         # load the best model weights
         model.load_state_dict(best_model)
