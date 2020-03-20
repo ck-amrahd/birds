@@ -1,0 +1,8 @@
+matplotlib
+numpy
+torch
+torchvision
+scikit-image
+cpython
+opencv-python
+foolbox==3.0.0b1

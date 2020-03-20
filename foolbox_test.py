@@ -28,11 +28,10 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
 
 models_list = os.listdir(models_folder)
 bounds = (0, 1)
-epsilons = np.linspace(0.05, 0.1, num=50)
-
-models = {}
+epsilons = np.linspace(0, 1, num=20)
+info = {}
 print(f'Running Attacks...')
-for model_name in models:
+for model_name in models_list:
     model = models.resnet50(pretrained=False)
     input_features = model.fc.in_features
     model.fc = nn.Linear(input_features, num_classes)
@@ -45,16 +44,16 @@ for model_name in models:
     robust_acc_list = []
     for inputs, labels in test_loader:
         inputs, labels = inputs.to(device), labels.to(device)
-        _, _, is_adv = attack(model, inputs, labels, epsilons=epsilons)
+        _, _, is_adv = attack(fmodel, inputs, labels, epsilons=epsilons)
         robust_acc = 1 - is_adv.float().mean(axis=-1)
         robust_acc_list.append(robust_acc)
 
     robust_acc = torch.stack(robust_acc_list)
     robust_acc = torch.mean(robust_acc, dim=0)
-    model_name = model_name.strip().split()[0]
-    models[model_name] = robust_acc
+    model_name = model_name.strip().split('.')[0]
+    info[model_name] = robust_acc
 
-for model_name, robust_acc in models.items():
+for model_name, robust_acc in info.items():
     plt.plot(epsilons, robust_acc.cpu().numpy(), label=model_name)
 
 plt.legend()

@@ -91,8 +91,6 @@ class Model:
 
         elif self.model_name == 'inception_v3':
             model = models.inception_v3(pretrained=False)
-            # input_features = model.fc.in_features
-            # model.fc = nn.Linear(input_features, self.num_labels)
             model.fc = nn.Linear(2048, 8142)
             model.aux_logits = False
             model = model.to(self.device)
@@ -123,7 +121,7 @@ class Model:
 
         inside_box = inside_box.to(self.device)
         penalty_inside_box = inside_box * input_gradient
-        penalty_inside_box = torch.norm(penalty_inside_box) ** 2
+        penalty_inside_box = (torch.norm(penalty_inside_box)) ** 2
 
         # make inside box to 0 and outside box to ones, so when we take element-wise product with the
         # input gradient, we will just get a patch from outside the box
@@ -135,7 +133,7 @@ class Model:
 
         inside_box = inside_box.to(self.device)
         penalty_outside_box = inside_box * input_gradient
-        penalty_outside_box = torch.norm(penalty_outside_box) ** 2
+        penalty_outside_box = (torch.norm(penalty_outside_box)) ** 2
 
         return penalty_inside_box, penalty_outside_box
 
@@ -145,26 +143,30 @@ class Model:
         # make inside mask to 1 and outside mask to zeros, so when we take element-wise product with the
         # input gradient, we will just get a patch from inside the mask
 
-        inside_box = torch.zeros(batch_size, self.num_channels, self.height, self.width)
+        penalty_inside_box = torch.zeros(batch_size, self.num_channels, self.height, self.width)
         for index, item in enumerate(batch_indices):
             mask_tensor = self.segmentation_mask[item]
-            inside_box[index][mask_tensor == 255.0] = 1.0
+            temp_grad = penalty_inside_box[index]
+            temp_grad[mask_tensor == 255.0] = 1.0
+            penalty_inside_box[index] = temp_grad
 
-        inside_box = inside_box.to(self.device)
-        penalty_inside_box = inside_box * input_gradient
-        penalty_inside_box = torch.norm(penalty_inside_box) ** 2
+        penalty_inside_box = penalty_inside_box.to(self.device)
+        penalty_inside_box = penalty_inside_box * input_gradient
+        penalty_inside_box = (torch.norm(penalty_inside_box)) ** 2
 
         # make inside mask to 0 and outside mask to ones, so when we take element-wise product with the
         # input gradient, we will just get a patch outside of the mask
 
-        inside_box = torch.ones(batch_size, self.num_channels, self.height, self.width)
+        penalty_outside_box = torch.ones(batch_size, self.num_channels, self.height, self.width)
         for index, item in enumerate(batch_indices):
             mask_tensor = self.segmentation_mask[item]
-            inside_box[index][mask_tensor == 255.0] = 0.0
+            temp_grad = penalty_outside_box[index]
+            temp_grad[mask_tensor == 255.0] = 0.0
+            penalty_outside_box[index] = temp_grad
 
-        inside_box = inside_box.to(self.device)
-        penalty_outside_box = inside_box * input_gradient
-        penalty_outside_box = torch.norm(penalty_outside_box) ** 2
+        penalty_outside_box = penalty_outside_box.to(self.device)
+        penalty_outside_box = penalty_outside_box * input_gradient
+        penalty_outside_box = (torch.norm(penalty_outside_box)) ** 2
 
         return penalty_inside_box, penalty_outside_box
 
@@ -180,7 +182,7 @@ class Model:
         model = model.to(self.device)
         # model = nn.DataParallel(model).to(self.device)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+        optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 
         train_batch_loader = BatchLoader(self.train_folder_path, self.num_channels, self.height, self.width,
                                          train_image_indices)
@@ -279,14 +281,12 @@ class Model:
             test_acc_list.append(test_acc)
             print('test Loss: {:.4f} Acc: {:.4f} % \n'.format(test_loss, test_acc))
 
-            # save the best model
-            if test_acc > best_acc:
-                best_acc = test_acc
-                best_model = model.state_dict()
-                if os.path.exists(self.checkpoint_path):
-                    os.remove(self.checkpoint_path)
+            best_acc = test_acc
+            best_model = model.state_dict()
+            if os.path.exists(self.checkpoint_path):
+                os.remove(self.checkpoint_path)
 
-                torch.save(best_model, self.checkpoint_path)
+            torch.save(best_model, self.checkpoint_path)
 
         # load the best model weights
         model.load_state_dict(best_model)

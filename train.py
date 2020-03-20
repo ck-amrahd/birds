@@ -7,20 +7,32 @@ from PIL import Image
 from bounding_box import BoundingBox
 import matplotlib.pyplot as plt
 from segmentations import Segmentation
+import sys
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-# constants
-# bbox = True, train with priviliged information, bbox = False, train without privileged information
+if len(sys.argv) != 5:
+    print(f'python train.py gpu_id seg/bbox/normal lambda_1, lambda_2')
+    sys.exit()
+
+gpu_id = sys.argv[1]
+device = torch.device('cuda:' + gpu_id if torch.cuda.is_available() else 'cpu')
+# lamnda_1 is the regularization we want inside the mask
+lambda_1 = int(sys.argv[3])
+# lamnda_2 is the regularization we want outside the mask
+lambda_2 = int(sys.argv[4])
+
 train_with_bounding_box = False
-train_with_seg_mask = True
+train_with_seg_mask = False
+
+if sys.argv[2] == 'bbox':
+    train_with_bounding_box = True
+
+if sys.argv[2] == 'seg':
+    train_with_seg_mask = True
+
+
 model_name = 'resnet50'
 start_from_pretrained_model=True
-# lamnda_1 is the regularization we want inside the mask
-lambda_1 = 0
-# lamnda_2 is the regularization we want outside the mask
-lamnda_2 = 100
-
 results_folder = 'results'
 
 train_folder_path = 'data/train'
@@ -54,11 +66,11 @@ if not os.path.exists(results_folder):
 
 
 if train_with_bounding_box:
-    checkpoint_path = results_folder + '/' + 'model_bbox_' + str(lambda_1) + '_' + str(lamnda_2) + '.pth'
+    checkpoint_path = results_folder + '/' + 'model_bbox_' + str(lambda_1) + '_' + str(lambda_2) + '.pth'
 elif train_with_seg_mask:
-    checkpoint_path = results_folder + '/' + 'model_seg_' + str(lambda_1) + '_' + str(lamnda_2) + '.pth'
+    checkpoint_path = results_folder + '/' + 'model_seg_' + str(lambda_1) + '_' + str(lambda_2) + '.pth'
 else:
-    checkpoint_path = results_folder + '/' + 'model_normal_' + str(lambda_1) + '_' + str(lamnda_2) + '.pth'
+    checkpoint_path = results_folder + '/' + 'model_normal_' + str(lambda_1) + '_' + str(lambda_2) + '.pth'
 
 
 # model --> model object
@@ -115,7 +127,7 @@ test_loss_list = []
 
 test_acc, _ = model.train(train_image_indices, batch_size, train_acc_list, test_acc_list, train_loss_list,
                           test_loss_list, num_epochs=num_epochs, train_with_bbox=train_with_bounding_box,
-                          train_with_seg_mask=train_with_seg_mask, lambda_1=lambda_1, lambda_2=lamnda_2,
+                          train_with_seg_mask=train_with_seg_mask, lambda_1=lambda_1, lambda_2=lambda_2,
                           start_from_pretrained_model=start_from_pretrained_model)
 
 print('Best test acc: {:.2f} %'.format(test_acc))
