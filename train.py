@@ -47,7 +47,7 @@ height = 224
 width = 224
 
 # number of epochs to train for each train_image_indices
-num_epochs = 50
+num_epochs = 100
 batch_size = 32
 
 
@@ -134,15 +134,15 @@ print('Best test acc: {:.2f} %'.format(test_acc))
 
 x = list(range(num_epochs))
 plt.subplot(121)
-plt.plot(x, train_acc_list, label='train_acc')
-plt.plot(x, test_acc_list, label='test_acc')
+plt.plot(x, train_acc_list, label='train_acc_' + sys.argv[2])
+plt.plot(x, test_acc_list, label='test_acc_' + sys.argv[2])
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 
 plt.subplot(122)
-plt.plot(x, train_loss_list, label='train_loss_label')
-plt.plot(x, test_loss_list, label='test_loss_label')
+plt.plot(x, train_loss_list, label='train_loss_' + sys.argv[2])
+plt.plot(x, test_loss_list, label='test_loss_' + sys.argv[2])
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()

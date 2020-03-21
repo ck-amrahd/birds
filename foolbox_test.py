@@ -28,7 +28,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
 
 models_list = os.listdir(models_folder)
 bounds = (0, 1)
-epsilons = np.linspace(0, 1, num=20)
+epsilons = np.linspace(0, 0.1, num=20)
 info = {}
 print(f'Running Attacks...')
 for model_name in models_list:

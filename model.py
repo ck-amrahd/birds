@@ -180,12 +180,10 @@ class Model:
         model = self.initialize_model(start_from_pretrained_model=start_from_pretrained_model)
 
         model = model.to(self.device)
-        # model = nn.DataParallel(model).to(self.device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 
-        train_batch_loader = BatchLoader(self.train_folder_path, self.num_channels, self.height, self.width,
-                                         train_image_indices)
+        train_batch_loader = BatchLoader(self.train_folder_path, train_image_indices)
 
         n_images = len(train_image_indices)
         if n_images % batch_size == 0:
@@ -281,7 +279,6 @@ class Model:
             test_acc_list.append(test_acc)
             print('test Loss: {:.4f} Acc: {:.4f} % \n'.format(test_loss, test_acc))
 
-            # save the best model
             if test_acc > best_acc:
                 best_acc = test_acc
                 best_model = model.state_dict()
@@ -289,7 +286,5 @@ class Model:
                     os.remove(self.checkpoint_path)
 
                 torch.save(best_model, self.checkpoint_path)
-
-        # load the best model weights
         model.load_state_dict(best_model)
-        return best_acc, model
+        return best_acc, best_model
