@@ -31,7 +31,7 @@ if sys.argv[2] == 'seg':
     train_with_seg_mask = True
 
 
-model_name = 'resnet50'
+model_name = 'resnet18'
 start_from_pretrained_model=True
 results_folder = 'results'
 
@@ -47,7 +47,7 @@ height = 224
 width = 224
 
 # number of epochs to train for each train_image_indices
-num_epochs = 100
+num_epochs = 50
 batch_size = 32
 
 

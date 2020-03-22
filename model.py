@@ -205,7 +205,6 @@ class Model:
             train_loss = 0.0
 
             for batch in range(num_batches):
-                # inputs, labels = train_batch_loader.get_batch(batch_size)
                 batch_indices = train_batch_loader.get_batch_indices(batch_size)
                 inputs = self.x_train[batch_indices]
                 labels = self.y_train[batch_indices]
@@ -217,28 +216,31 @@ class Model:
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
                     loss = criterion(outputs, labels)
-                    loss.backward(retain_graph=True)
-                    input_gradient = inputs.grad.data
+                    input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
                     penalty_inside_box, penalty_outside_box = self.calculate_penalty_box(batch_indices, input_gradient)
-                    # optimize for next step with gradient penalty
-                    loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
-                    # zero out the grads, otherwise they will be accumulated
-                    optimizer.zero_grad()
-                    loss.backward()
+                    new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
+                    new_loss.backward()
                     optimizer.step()
+
+                    # old code
+                    # loss.backward(retain_graph=True)
+                    # input_gradient = inputs.grad
+                    # penalty_inside_box, penalty_outside_box = self.calculate_penalty_box(batch_indices,
+                    # input_gradient)
+                    # new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
+                    # optimizer.zero_grad()
+                    # new_loss.backward()
+                    # optimizer.step()
 
                 elif train_with_seg_mask:
                     inputs.requires_grad_()
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
                     loss = criterion(outputs, labels)
-                    loss.backward(retain_graph=True)
-                    input_gradient = inputs.grad.data
+                    input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
                     penalty_inside_box, penalty_outside_box = self.calculate_penalty_mask(batch_indices, input_gradient)
-                    loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
-                    # zero out the grads, otherwise they will be accumulated
-                    optimizer.zero_grad()
-                    loss.backward()
+                    new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
+                    new_loss.backward()
                     optimizer.step()
 
                 else:

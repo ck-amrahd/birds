@@ -1,4 +1,5 @@
 matplotlib
+pillow
 numpy
 torch
 torchvision
