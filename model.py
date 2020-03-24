@@ -123,6 +123,11 @@ class Model:
         penalty_inside_box = penalty_inside_box * input_gradient
         penalty_inside_box = (torch.norm(penalty_inside_box)) ** 2
 
+        # per example norm calculation
+        # penalty_inside_box = penalty_inside_box.view(batch_size, -1)
+        # penalty_inside_box = torch.sum(penalty_inside_box ** 2, dim=1)
+        # penalty_inside_box = penalty_inside_box.sum()
+
         # make inside box to 0 and outside box to ones, so when we take element-wise product with the
         # input gradient, we will just get a patch from outside the box
 
@@ -195,7 +200,6 @@ class Model:
         best_model = None
 
         for epoch in range(num_epochs):
-            # start_time_epoch = time.time()
             model.train()
             train_batch_loader.reset()
             print('Epoch: {}/{}'.format(epoch + 1, num_epochs))

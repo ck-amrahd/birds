@@ -31,7 +31,7 @@ if sys.argv[2] == 'seg':
     train_with_seg_mask = True
 
 
-model_name = 'resnet18'
+model_name = 'resnet50'
 start_from_pretrained_model=True
 results_folder = 'results'
 

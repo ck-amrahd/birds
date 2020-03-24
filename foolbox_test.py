@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from torchvision import datasets, models
 import os
 
-models_folder = 'results/resnet18'
+models_folder = 'results/foolbox'
 
 test_dataset_path = 'data/test'
 num_classes = 200
@@ -28,11 +28,11 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
 
 models_list = os.listdir(models_folder)
 bounds = (0, 1)
-epsilons = np.linspace(0, 0.2, num=20)
+epsilons = np.linspace(0, 0.5, num=20)
 info = {}
 print(f'Running Attacks...')
 for model_name in models_list:
-    model = models.resnet18(pretrained=False)
+    model = models.resnet50(pretrained=False)
     input_features = model.fc.in_features
     model.fc = nn.Linear(input_features, num_classes)
     model.load_state_dict(torch.load(models_folder + '/' + model_name))
