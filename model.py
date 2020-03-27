@@ -177,7 +177,7 @@ class Model:
 
     def train(self, train_image_indices, batch_size, train_acc_list, test_acc_list, train_loss_list, test_loss_list,
               num_epochs=50, train_with_bbox=False, train_with_seg_mask=False, lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True):
+              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD'):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
@@ -186,7 +186,15 @@ class Model:
 
         model = model.to(self.device)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
+
+        if optimizer == 'SGD':
+            optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
+
+        elif optimizer == 'Adam':
+            optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
+
+        else:
+            optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
 
         train_batch_loader = BatchLoader(self.train_folder_path, train_image_indices)
 
@@ -198,6 +206,8 @@ class Model:
 
         best_acc = 0.0
         best_model = None
+        penalty_inside_list = []
+        penalty_outside_list = []
 
         for epoch in range(num_epochs):
             model.train()
@@ -207,6 +217,8 @@ class Model:
 
             train_correct = 0.0
             train_loss = 0.0
+            penalty_inside = 0.0
+            penalty_outside = 0.0
 
             for batch in range(num_batches):
                 batch_indices = train_batch_loader.get_batch_indices(batch_size)
@@ -226,16 +238,6 @@ class Model:
                     new_loss.backward()
                     optimizer.step()
 
-                    # old code
-                    # loss.backward(retain_graph=True)
-                    # input_gradient = inputs.grad
-                    # penalty_inside_box, penalty_outside_box = self.calculate_penalty_box(batch_indices,
-                    # input_gradient)
-                    # new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
-                    # optimizer.zero_grad()
-                    # new_loss.backward()
-                    # optimizer.step()
-
                 elif train_with_seg_mask:
                     inputs.requires_grad_()
                     outputs = model(inputs)
@@ -253,15 +255,26 @@ class Model:
                     loss = criterion(outputs, labels)
                     loss.backward()
                     optimizer.step()
+                    penalty_inside_box = 0
+                    penalty_outside_box = 0
 
                 train_loss += loss.item()
-                train_correct += torch.sum(preds == labels)
+                train_correct += torch.sum(preds == labels).float().item()
+                penalty_inside += penalty_inside_box.item() * lambda_1
+                penalty_outside += penalty_outside_box.item() * lambda_2
 
             train_loss = train_loss / self.train_dataset_length
             train_loss_list.append(train_loss)
             train_acc = (train_correct / self.train_dataset_length) * 100.0
             train_acc_list.append(train_acc)
+            penalty_inside = penalty_inside / self.train_dataset_length
+            penalty_outside = penalty_outside / self.train_dataset_length
+            penalty_inside_list.append(penalty_inside)
+            penalty_outside_list.append(penalty_outside)
+
             print('Train Loss: {:.4f} Acc: {:.4f} % '.format(train_loss, train_acc))
+            print(f'Penalty Inside Box: {round(penalty_inside, 4)}')
+            print(f'Penalty Outside Box: {round(penalty_outside, 4)}')
 
             # validate after each epoch
             test_correct = 0.0
@@ -276,7 +289,7 @@ class Model:
                     loss_test = criterion(outputs_test, labels_test)
 
                     test_loss += loss_test.item()
-                    test_correct += torch.sum(preds_test == labels_test)
+                    test_correct += torch.sum(preds_test == labels_test).float().item()
 
             test_loss = test_loss / self.test_dataset_length
             test_loss_list.append(test_loss)
@@ -293,4 +306,4 @@ class Model:
 
                 torch.save(best_model, self.checkpoint_path)
         model.load_state_dict(best_model)
-        return best_acc, best_model
+        return best_acc, best_model, penalty_inside_list, penalty_outside_list
