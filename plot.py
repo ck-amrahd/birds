@@ -15,7 +15,7 @@ lambda_2 = []
 ce_loss = []
 penalty_inside = []
 penalty_outside = []
-best_ac_list = []
+best_acc_list = []
 
 for file_name in pickle_files:
     with open(file_name, 'rb') as read_file:
@@ -28,16 +28,17 @@ for file_name in pickle_files:
 
         test_acc = model_log.get('test_acc')
         best_acc = round(max(test_acc), 2)
-        best_ac_list.append(best_acc)
+        best_acc_list.append(best_acc)
 
 
 lambda_2 = [math.log(x) for x in lambda_2]
-plt.scatter(lambda_2, ce_loss, color='blue', label='ce_loss')
+# plt.scatter(lambda_2, ce_loss, color='blue', label='ce_loss')
 # plt.scatter(lambda_1, penalty_inside, color='red', label='penalty')
-plt.scatter(lambda_2, penalty_outside, color='red', label='penalty')
-# plt.scatter(lambda_2, best_ac_list, label='best_acc')
+# plt.scatter(lambda_2, penalty_outside, color='red', label='penalty')
+plt.scatter(lambda_2, best_acc_list)
 # plt.xlabel('lambda_1')
 plt.xlabel('log(lambda_2)')
-plt.ylabel('loss and penalty')
-plt.legend()
+# plt.ylabel('loss and penalty')
+plt.ylabel('best_acc')
+# plt.legend()
 plt.show()

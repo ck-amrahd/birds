@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from torchvision import datasets, models
 import os
 
-models_folder = 'results/foolbox'
+models_folder = 'results/foolbox3'
 
 test_dataset_path = 'data/test'
 num_classes = 200
@@ -28,7 +28,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
 
 models_list = os.listdir(models_folder)
 bounds = (0, 1)
-epsilons = np.linspace(0, 0.5, num=20)
+epsilons = np.linspace(0, 0.1, num=20)
 info = {}
 print(f'Running Attacks...')
 for model_name in models_list:
@@ -50,7 +50,7 @@ for model_name in models_list:
 
     robust_acc = torch.stack(robust_acc_list)
     robust_acc = torch.mean(robust_acc, dim=0)
-    model_name = model_name.strip().split('.')[0]
+    model_name = model_name.strip().rsplit('.', 1)[0]
     info[model_name] = robust_acc
 
 for model_name, robust_acc in info.items():
