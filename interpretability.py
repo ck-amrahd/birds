@@ -11,8 +11,8 @@ from utils import tensor_to_image
 image_folder = 'viz_images'
 class_id = 3
 total_images = 4
-
-checkpoint_path = 'results/resnet50/model_bbox_0_100.pth'
+viz_index = 3
+checkpoint_path = 'results/foolbox3/model_bbox_0.0_100.0.pth'
 target_tensor = torch.tensor([0, 1, 2, 3])
 num_labels = 200
 
@@ -53,24 +53,22 @@ inputs_gradient = inputs.grad.data
 # normalize the inputs_gradient
 # inputs_gradient = torch.abs(inputs_gradient)
 # inputs_gradient -= inputs_gradient.min()
-# inputs_gradient /= inputs_gradient.max()
-breakpoint()
+# inputs_gradient /= inputs_gradient.max(
 # print(f'inputs_gradient.shape: {inputs_gradient.shape}')
-viz_index = 1
+
 inp_grad = inputs_gradient[viz_index]
 # print(f'inp_grad.shape: {inp_grad.shape}')
-# inp_grad = np.abs(inp_grad)
-# inp_grad = inp_grad - inp_grad.min()
-# inp_grad /= inp_grad.max()
+inp_grad = np.abs(inp_grad)
+inp_grad = inp_grad - inp_grad.min()
+inp_grad /= inp_grad.max()
 # transpose from [C, H, W] to [H, W, C]
 # inp_grad = inp_grad.transpose(1, 2, 0)
 # inp_grad = np.dot(inp_grad[...,:3], [0.2989, 0.5870, 0.1140])
 # inp_grad *= 255
 # inp_grad = inp_grad.astype(np.uint8)
-img = tensor_to_image(inp_grad)
+img = inp_grad.numpy().transpose(1, 2, 0)
 plt.imshow(img)
 plt.show()
-
 
 # print('The model is giving importance at the following region: ')
 # original_image = cv2.imread(image_path)
@@ -83,4 +81,3 @@ plt.show()
 # img = Image.fromarray(img)
 # plt.imshow(img, cmap='hot')
 # plt.show()
-
