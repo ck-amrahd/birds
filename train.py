@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 from segmentations import Segmentation
 import sys
 import pickle
+import time
+
+
+start = time.time()
 
 if len(sys.argv) != 5:
     print(f'python train.py gpu_id seg/bbox/normal lambda_1, lambda_2')
@@ -197,3 +201,7 @@ plt.ylabel('Penalty-Outside')
 plt.legend()
 
 plt.show()
+
+end = time.time()
+elapsed_minutes = (end - start) / 60
+print(f'elapsed_minutes: {elapsed_minutes}')
