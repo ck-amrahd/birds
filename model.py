@@ -187,7 +187,7 @@ class Model:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 optimizer.zero_grad()
 
-                if train_method == 'bbox' or train_method == 'blackout':
+                if train_method == 'bbox':
                     inputs.requires_grad_()
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)

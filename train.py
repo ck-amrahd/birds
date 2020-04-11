@@ -92,18 +92,23 @@ if train_method == 'bbox' or train_method == 'blackout':
 
 # if train with blackout - black out the extra region while loading
 if train_method == 'blackout':
+    bbox = BoundingBox(train_folder_path, images_text_file, bounding_box_file, height, width)
     for idx, img_name in enumerate(train_images):
         img_path = train_folder_path + '/' + img_name
         img = Image.open(img_path)
         if img.mode == 'L':
             img = img.convert('RGB')
 
-        img = img.resize((width, height))
+        # img = img.resize((width, height))
+        # img = np.array(img)
+        # x1, y1, x2, y2 = bounding_box[idx]
+        # tmp = np.zeros((height, width, num_channels), dtype=np.uint8)
+        # tmp[y1:y2, x1:x2, :] = 1
+        # img = img * tmp
+        # img = Image.fromarray(img)
+        x1, y1, x2, y2 = bbox.get_bbox_unscaled(img_name)
         img = np.array(img)
-        x1, y1, x2, y2 = bounding_box[idx]
-        tmp = np.zeros((height, width, num_channels), dtype=np.uint8)
-        tmp[y1:y2, x1:x2, :] = 1
-        img = img * tmp
+        img = img[y1:y2, x1:x2, :]
         img = Image.fromarray(img)
 
         img_tensor = transform(img)
