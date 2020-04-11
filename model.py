@@ -9,7 +9,7 @@ from torchvision import transforms, datasets
 
 class Model:
     def __init__(self, model_name, train_folder_path, test_folder_path, x_train, y_train, device, num_channels, height,
-                 width, checkpoint_path, bounding_box=None, segmentation_mask=None, num_labels=200):
+                 width, checkpoint_path, bounding_box=None, num_labels=200):
         """
         Initializes the model along with other initialization
         """
@@ -20,7 +20,6 @@ class Model:
         self.x_train = x_train
         self.y_train = y_train
         self.bounding_box = bounding_box
-        self.segmentation_mask = segmentation_mask
         self.device = device
         self.num_labels = num_labels
         self.num_channels = num_channels
@@ -89,15 +88,6 @@ class Model:
             input_features = model.fc.in_features
             model.fc = nn.Linear(input_features, self.num_labels)
 
-        elif self.model_name == 'inception_v3':
-            model = models.inception_v3(pretrained=False)
-            model.fc = nn.Linear(2048, 8142)
-            model.aux_logits = False
-            model = model.to(self.device)
-            checkpoint = torch.load('./inception_v3.pth.tar')
-            model.load_state_dict(checkpoint['state_dict'])
-            model.fc = nn.Linear(2048, self.num_labels)
-
         else:
             if start_from_pretrained_model:
                 model = models.resnet18(pretrained=True)
@@ -142,41 +132,7 @@ class Model:
 
         return penalty_inside_box, penalty_outside_box
 
-    def calculate_penalty_mask(self, batch_indices, input_gradient):
-        batch_size = len(batch_indices)
-
-        # make inside mask to 1 and outside mask to zeros, so when we take element-wise product with the
-        # input gradient, we will just get a patch from inside the mask
-
-        penalty_inside_box = torch.zeros(batch_size, self.num_channels, self.height, self.width)
-        for index, item in enumerate(batch_indices):
-            mask_tensor = self.segmentation_mask[item]
-            temp_grad = penalty_inside_box[index]
-            temp_grad[mask_tensor == 255.0] = 1.0
-            penalty_inside_box[index] = temp_grad
-
-        penalty_inside_box = penalty_inside_box.to(self.device)
-        penalty_inside_box = penalty_inside_box * input_gradient
-        penalty_inside_box = (torch.norm(penalty_inside_box)) ** 2
-
-        # make inside mask to 0 and outside mask to ones, so when we take element-wise product with the
-        # input gradient, we will just get a patch outside of the mask
-
-        penalty_outside_box = torch.ones(batch_size, self.num_channels, self.height, self.width)
-        for index, item in enumerate(batch_indices):
-            mask_tensor = self.segmentation_mask[item]
-            temp_grad = penalty_outside_box[index]
-            temp_grad[mask_tensor == 255.0] = 0.0
-            penalty_outside_box[index] = temp_grad
-
-        penalty_outside_box = penalty_outside_box.to(self.device)
-        penalty_outside_box = penalty_outside_box * input_gradient
-        penalty_outside_box = (torch.norm(penalty_outside_box)) ** 2
-
-        return penalty_inside_box, penalty_outside_box
-
-    def train(self, train_image_indices, batch_size, train_acc_list, test_acc_list, train_loss_list, test_loss_list,
-              num_epochs=50, train_with_bbox=False, train_with_seg_mask=False, lambda_1=0, lambda_2=0,
+    def train(self, train_image_indices, batch_size, num_epochs=50, train_method='normal', lambda_1=0, lambda_2=0,
               start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD', best_acc=0.0):
 
         if os.path.exists(self.checkpoint_path):
@@ -206,6 +162,11 @@ class Model:
 
         penalty_inside_list = []
         penalty_outside_list = []
+        train_acc_list = []
+        test_acc_list = []
+        train_loss_list = []
+        test_loss_list = []
+
         best_acc_this_run = 0.0
 
         for epoch in range(num_epochs):
@@ -226,24 +187,13 @@ class Model:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 optimizer.zero_grad()
 
-                if train_with_bbox:
+                if train_method == 'bbox' or train_method == 'blackout':
                     inputs.requires_grad_()
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
                     loss = criterion(outputs, labels)
                     input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
                     penalty_inside_box, penalty_outside_box = self.calculate_penalty_box(batch_indices, input_gradient)
-                    new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
-                    new_loss.backward()
-                    optimizer.step()
-
-                elif train_with_seg_mask:
-                    inputs.requires_grad_()
-                    outputs = model(inputs)
-                    preds = torch.argmax(outputs, dim=1)
-                    loss = criterion(outputs, labels)
-                    input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
-                    penalty_inside_box, penalty_outside_box = self.calculate_penalty_mask(batch_indices, input_gradient)
                     new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
                     new_loss.backward()
                     optimizer.step()
@@ -309,4 +259,12 @@ class Model:
                 best_acc_this_run = test_acc
 
         # model.load_state_dict(best_model)
-        return best_acc_this_run, penalty_inside_list, penalty_outside_list
+        return_dict = {'best_acc_this_run': best_acc_this_run,
+                       'train_acc_list': train_acc_list,
+                       'test_acc_list': test_acc_list,
+                       'train_loss_list': train_loss_list,
+                       'test_loss_list': test_loss_list,
+                       'penalty_inside': penalty_inside_list,
+                       'penalty_outside': penalty_outside_list}
+
+        return return_dict
