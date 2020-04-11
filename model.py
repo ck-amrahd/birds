@@ -177,7 +177,7 @@ class Model:
 
     def train(self, train_image_indices, batch_size, train_acc_list, test_acc_list, train_loss_list, test_loss_list,
               num_epochs=50, train_with_bbox=False, train_with_seg_mask=False, lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD'):
+              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD', best_acc=0.0):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
@@ -204,10 +204,9 @@ class Model:
         else:
             num_batches = (n_images // batch_size) + 1
 
-        best_acc = 0.0
-        best_model = None
         penalty_inside_list = []
         penalty_outside_list = []
+        best_acc_this_run = 0.0
 
         for epoch in range(num_epochs):
             model.train()
@@ -255,8 +254,8 @@ class Model:
                     loss = criterion(outputs, labels)
                     loss.backward()
                     optimizer.step()
-                    penalty_inside_box = 0
-                    penalty_outside_box = 0
+                    penalty_inside_box = torch.tensor(0).to(self.device)
+                    penalty_outside_box = torch.tensor(0).to(self.device)
 
                 train_loss += loss.item()
                 train_correct += torch.sum(preds == labels).float().item()
@@ -305,5 +304,9 @@ class Model:
                     os.remove(self.checkpoint_path)
 
                 torch.save(best_model, self.checkpoint_path)
-        model.load_state_dict(best_model)
-        return best_acc, best_model, penalty_inside_list, penalty_outside_list
+
+            if test_acc > best_acc_this_run:
+                best_acc_this_run = test_acc
+
+        # model.load_state_dict(best_model)
+        return best_acc_this_run, penalty_inside_list, penalty_outside_list

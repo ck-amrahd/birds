@@ -10,6 +10,7 @@ from segmentations import Segmentation
 import sys
 import pickle
 
+
 if len(sys.argv) != 5:
     print(f'python train.py gpu_id seg/bbox/normal lambda_1, lambda_2')
     sys.exit()
@@ -21,7 +22,7 @@ lambda_1 = float(sys.argv[3])
 # lamnda_2 is the regularization we want outside the mask
 lambda_2 = float(sys.argv[4])
 
-num_epochs = 2
+num_epochs = 50
 learning_rate = 0.01
 optimizer = 'SGD'
 # optimizer = 'Adam'
@@ -119,35 +120,21 @@ model = Model(model_name, train_folder_path, test_folder_path, X_train, Y_train,
 
 train_image_indices = list(range(len(train_images)))
 
-# run 5 times and average out
+train_acc_list = []
+test_acc_list = []
+train_loss_list = []
+test_loss_list = []
 
-acc_list = []
-best_acc = 0.0
+test_acc, best_model, p_inside, p_outside = model.train(train_image_indices, batch_size, train_acc_list,
+                                                        test_acc_list, train_loss_list,
+                                                        test_loss_list, num_epochs=num_epochs,
+                                                        train_with_bbox=train_with_bounding_box,
+                                                        train_with_seg_mask=train_with_seg_mask,
+                                                        lambda_1=lambda_1, lambda_2=lambda_2,
+                                                        start_from_pretrained_model=start_from_pretrained_model,
+                                                        learning_rate=learning_rate, optimizer=optimizer)
 
-for i in range(2):
-    train_acc_list = []
-    test_acc_list = []
-    train_loss_list = []
-    test_loss_list = []
-    test_acc, p_inside, p_outside = model.train(train_image_indices, batch_size, train_acc_list,
-                                                test_acc_list, train_loss_list,
-                                                test_loss_list, num_epochs=num_epochs,
-                                                train_with_bbox=train_with_bounding_box,
-                                                train_with_seg_mask=train_with_seg_mask,
-                                                lambda_1=lambda_1, lambda_2=lambda_2,
-                                                start_from_pretrained_model=start_from_pretrained_model,
-                                                learning_rate=learning_rate, optimizer=optimizer,
-                                                best_acc=best_acc)
-
-    acc_list.append(test_acc)
-    if test_acc > best_acc:
-        best_acc = test_acc
-
-    print('Best test acc: {:.2f} %'.format(test_acc))
-
-print(f'acc_list: {acc_list}')
-avg_best_acc = sum(acc_list) / len(acc_list)
-print(f'Average best_acc: {round(avg_best_acc, 2)}')
+print('Best test acc: {:.2f} %'.format(test_acc))
 
 # dump everything to pickle and save it
 model_log = {'num_epochs': num_epochs, 'train_method': sys.argv[2],
@@ -156,8 +143,7 @@ model_log = {'num_epochs': num_epochs, 'train_method': sys.argv[2],
              'train_loss': train_loss_list, 'test_loss': test_loss_list,
              'penalty_inside': p_inside, 'penalty_outside': p_outside,
              'model_name': model_name, 'start_from_pretrained_model': start_from_pretrained_model,
-             'learning_rate': learning_rate, 'optimizer': optimizer,
-             'acc_list': acc_list, 'avg_best_acc': avg_best_acc}
+             'learning_rate': learning_rate, 'optimizer' : optimizer}
 
 if train_with_bounding_box:
     log_path = results_folder + '/' + 'model_bbox_' + str(lambda_1) + '_' + str(lambda_2) + '.pickle'
@@ -165,6 +151,7 @@ elif train_with_seg_mask:
     log_path = results_folder + '/' + 'model_seg_' + str(lambda_1) + '_' + str(lambda_2) + '.pickle'
 else:
     log_path = results_folder + '/' + 'model_normal_' + str(lambda_1) + '_' + str(lambda_2) + '.pickle'
+
 
 with open(log_path, 'wb') as write_file:
     pickle.dump(model_log, write_file)
