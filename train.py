@@ -21,7 +21,7 @@ lambda_1 = float(sys.argv[3])
 # lamnda_2 is the regularization we want outside the mask
 lambda_2 = float(sys.argv[4])
 
-num_epochs = 2
+num_epochs = 50
 learning_rate = 0.01
 optimizer = 'SGD'
 # optimizer = 'Adam'
@@ -124,7 +124,7 @@ train_image_indices = list(range(len(train_images)))
 acc_list = []
 best_acc = 0.0
 
-for i in range(2):
+for i in range(5):
     train_acc_list = []
     test_acc_list = []
     train_loss_list = []
