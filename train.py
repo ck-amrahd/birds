@@ -21,8 +21,8 @@ machine = sys.argv[1]
 gpu_id = sys.argv[2]
 train_method = sys.argv[3]
 
-num_average = 5  # average out the results from 5 runs
-num_epochs = 50
+num_average = 5             # average out the results from 5 runs
+num_epochs = 50             # 50
 learning_rate = 0.01
 
 if machine == 'hpc':
@@ -92,23 +92,18 @@ if train_method == 'bbox' or train_method == 'blackout':
 
 # if train with blackout - black out the extra region while loading
 if train_method == 'blackout':
-    bbox = BoundingBox(train_folder_path, images_text_file, bounding_box_file, height, width)
     for idx, img_name in enumerate(train_images):
         img_path = train_folder_path + '/' + img_name
         img = Image.open(img_path)
         if img.mode == 'L':
             img = img.convert('RGB')
 
-        # img = img.resize((width, height))
-        # img = np.array(img)
-        # x1, y1, x2, y2 = bounding_box[idx]
-        # tmp = np.zeros((height, width, num_channels), dtype=np.uint8)
-        # tmp[y1:y2, x1:x2, :] = 1
-        # img = img * tmp
-        # img = Image.fromarray(img)
-        x1, y1, x2, y2 = bbox.get_bbox_unscaled(img_name)
+        img = img.resize((width, height))
         img = np.array(img)
-        img = img[y1:y2, x1:x2, :]
+        x1, y1, x2, y2 = bounding_box[idx]
+        tmp = np.zeros((height, width, num_channels), dtype=np.uint8)
+        tmp[y1:y2, x1:x2, :] = 1
+        img = img * tmp
         img = Image.fromarray(img)
 
         img_tensor = transform(img)
@@ -163,7 +158,7 @@ print(f'Average best_acc: {round(avg_best_acc, 2)}')
 train_acc_list = return_dict['train_acc_list']
 test_acc_list = return_dict['test_acc_list']
 train_loss_list = return_dict['train_loss_list']
-test_loss_list = return_dict['test_loss_dict']
+test_loss_list = return_dict['test_loss_list']
 penalty_inside_list = return_dict['penalty_inside_list']
 penalty_outside_list = return_dict['penalty_outside_list']
 
@@ -180,6 +175,11 @@ log_path = results_folder + '/' + train_method + '_' + str(lambda_1) + '_' + str
 
 with open(log_path, 'wb') as write_file:
     pickle.dump(model_log, write_file)
+
+end = time.time()
+elapsed_minutes = (end - start) / 60
+print(f'elapsed_minutes: {elapsed_minutes}')
+
 
 x = list(range(num_epochs))
 plt.subplot(221)
@@ -209,7 +209,3 @@ plt.ylabel('Penalty-Outside')
 plt.legend()
 
 plt.show()
-
-end = time.time()
-elapsed_minutes = (end - start) / 60
-print(f'elapsed_minutes: {elapsed_minutes}')

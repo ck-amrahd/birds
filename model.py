@@ -264,7 +264,7 @@ class Model:
                        'test_acc_list': test_acc_list,
                        'train_loss_list': train_loss_list,
                        'test_loss_list': test_loss_list,
-                       'penalty_inside': penalty_inside_list,
-                       'penalty_outside': penalty_outside_list}
+                       'penalty_inside_list': penalty_inside_list,
+                       'penalty_outside_list': penalty_outside_list}
 
         return return_dict
