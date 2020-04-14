@@ -1,8 +1,7 @@
 import pickle
 import matplotlib.pyplot as plt
-import numpy as np
 
-pickle_file_name = 'results/resnet50/model_bbox_0.0_100.0.pickle'
+pickle_file_name = 'models/bbox_0.0_100.0.pickle'
 
 with open(pickle_file_name, 'rb') as read_file:
     model_log = pickle.load(read_file)
@@ -10,31 +9,45 @@ with open(pickle_file_name, 'rb') as read_file:
     lambda_1 = model_log.get('lambda_1')
     lambda_2 = model_log.get('lambda_2')
     ce_loss = model_log.get('train_loss')
-    penalty_inside = model_log.get('penalty_inside')
-    penalty_outside = model_log.get('penalty_outside')
+    penalty_inside_list = model_log.get('penalty_inside')
+    penalty_outside_list = model_log.get('penalty_outside')
     num_epochs = model_log.get('num_epochs')
-    train_acc = model_log.get('train_acc')
-    test_acc = model_log.get('test_acc')
-    train_loss = model_log.get('train_loss')
-    test_loss = model_log.get('test_loss')
+    train_acc_list = model_log.get('train_acc')
+    test_acc_list = model_log.get('test_acc')
+    train_loss_list = model_log.get('train_loss')
+    test_loss_list = model_log.get('test_loss')
+    acc_list = model_log.get('acc_list')
+    avg_best_acc = model_log.get('avg_best_acc')
+
+
+print(f'acc_list: {acc_list}')
+print(f'avg_best_acc: {avg_best_acc}')
 
 x = list(range(num_epochs))
-f = plt.figure(figsize=(12, 8))
-ax1 = f.add_subplot(121)
-ax1.plot(x, train_loss, label='train_loss')
-ax1.plot(x, test_loss, label='test_loss')
+plt.subplot(221)
+plt.plot(x, train_acc_list, label='train_acc_' + train_method)
+plt.plot(x, test_acc_list, label='test_acc_' + train_method)
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+
+plt.subplot(222)
+plt.plot(x, train_loss_list, label='train_loss_' + train_method)
+plt.plot(x, test_loss_list, label='test_loss_' + train_method)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-ax1.legend()
+plt.legend()
 
-# normalize penalty_outside by lambda_2
-penalty_outside = np.array(penalty_outside) / lambda_2
+plt.subplot(223)
+plt.plot(x, penalty_inside_list, label='lambda_1=' + str(lambda_1))
+plt.xlabel('Epochs')
+plt.ylabel('Penalty-Inside')
+plt.legend()
 
-ax2 = f.add_subplot(122)
-ax2.plot(x, penalty_outside, label='lambda_2=' + str(lambda_2))
+plt.subplot(224)
+plt.plot(x, penalty_outside_list, label='lambda_2=' + str(lambda_2))
 plt.xlabel('Epochs')
 plt.ylabel('Penalty-Outside')
-ax2.legend()
+plt.legend()
 
-plt.savefig(train_method + '_' + str(lambda_1) + '_' + str(lambda_2) + '.png', dpi=800)
 plt.show()
