@@ -13,16 +13,16 @@ import numpy as np
 
 start = time.time()
 
-if len(sys.argv) != 7:
-    print(f'python train.py hpc/local gpu_id bbox/normal/blackout lambda_1, lambda_2 runs')
+if len(sys.argv) != 8:
+    print(f'python train.py hpc/local gpu_id bbox/normal/blackout lambda_1, lambda_2 epochs runs')
     sys.exit()
 
 machine = sys.argv[1]
 gpu_id = sys.argv[2]
 train_method = sys.argv[3]
 
-num_average = int(sys.argv[6])
-num_epochs = 50
+num_epochs = int(sys.argv[6])
+num_average = int(sys.argv[7])
 learning_rate = 0.01
 
 if machine == 'hpc':
