@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Dharma KC
+# Run using following command:
+# qsub -J 0-12 train.pbs
+
+#PBS -W group_list=chichengz
+#PBS -q windfall
+
+# no email -- too many experiments flodding my email 
+##PBS -M kcdharma@email.arizona.edu
+##PBS -m bea
+
+#PBS -l select=1:ncpus=28:mem=128gb:np100s=1:os7=True
+#PBS -N kcdharma
+# each experiment should finish in around 5 hours
+#PBS -l walltime=05:00:00
+
+# lambda_range  = [0.1, 0.22, 0.46, 1.0, 2.15, 4.64, 10.0, 21.54, 46.42, 100.0, 215.44, 464.16. 1000.0]
+lambda_1=0.0
+# lambda_2=(0.1 0.22 0.46 1.0 2.15 4.64 10.0 21.54 46.42 100.0 215.44 464.16 1000.0)
+lambda_2=0.0
+
+module load singularity
+module load python/3.6
+cd birds/
+
+# echo $lambda_1 --> value of lambda_1
+# echo ${lambda_2[$PBS_ARRAY_INDEX]} --> value of lambda_2, index will come from qsub -J m:n
+# python3 train.py hpc/local gpu_id bbox/normal/blackout lambda_1 lambda_2 num_epochs num_average
+# num_average is the quantity that will run that many experiment to num_epochs and average out the result
+
+# singularity exec --nv $HOME/pytorch.simg python3 train.py hpc 0 bbox $lambda_1 ${lambda_2[$PBS_ARRAY_INDEX]} 50 1
+# for normal/blackout
+singularity exec --nv $HOME/pytorch.simg python3 train.py hpc 0 blackout $lambda_1 $lambda_2 50 1
