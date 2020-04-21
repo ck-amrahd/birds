@@ -120,7 +120,7 @@ class Model:
         return penalty_inside_box, penalty_outside_box
 
     def train(self, train_image_indices, batch_size, num_epochs=50, train_method='normal', lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD', best_acc=0.0):
+              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD'):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
@@ -210,13 +210,11 @@ class Model:
 
             # save the last mdel
             if epoch == num_epochs - 1:
-                best_model = model.state_dict()
                 if os.path.exists(self.checkpoint_path):
                     os.remove(self.checkpoint_path)
 
-                torch.save(best_model, self.checkpoint_path)
+                torch.save(model.state_dict(), self.checkpoint_path)
 
-        # model.load_state_dict(best_model)
         return_dict = {'train_acc_list': train_acc_list,
                        'train_loss_list': train_loss_list,
                        'penalty_inside_list': penalty_inside_list,
