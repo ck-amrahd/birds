@@ -13,8 +13,8 @@ import numpy as np
 
 start = time.time()
 
-if len(sys.argv) != 8:
-    print(f'python train.py hpc/local gpu_id bbox/normal/blackout lambda_1, lambda_2 epochs runs')
+if len(sys.argv) != 7:
+    print(f'python train.py hpc/local gpu_id bbox/normal/blackout lambda_1, lambda_2 epochs')
     sys.exit()
 
 machine = sys.argv[1]
@@ -22,7 +22,6 @@ gpu_id = sys.argv[2]
 train_method = sys.argv[3]
 
 num_epochs = int(sys.argv[6])
-num_average = int(sys.argv[7])
 learning_rate = 0.01
 
 if machine == 'hpc':
@@ -43,10 +42,8 @@ start_from_pretrained_model = True
 results_folder = 'results'
 
 train_folder_path = 'data/train'
-test_folder_path = 'data/test'
 images_text_file = 'data/images.txt'
 bounding_box_file = 'data/bounding_boxes.txt'
-seg_folder = 'data/segmentations'
 
 num_labels = 200
 num_channels = 3
@@ -124,7 +121,7 @@ else:
         class_id = get_class_id(img_name)
         Y_train[idx] = int(class_id) - 1  # to make consistent labels to the and test set
 
-model = Model(model_name, train_folder_path, test_folder_path, X_train, Y_train, device, num_channels, height,
+model = Model(model_name, train_folder_path, X_train, Y_train, device, num_channels, height,
               width, checkpoint_path, bounding_box, num_labels)
 
 train_image_indices = list(range(len(train_images)))
@@ -134,42 +131,33 @@ train_image_indices = list(range(len(train_images)))
 acc_list = []
 best_acc = 0.0
 
-return_dict = None
-for _ in range(num_average):
-    return_dict = model.train(train_image_indices, batch_size, num_epochs=num_epochs,
-                              train_method=train_method,
-                              lambda_1=lambda_1, lambda_2=lambda_2,
-                              start_from_pretrained_model=start_from_pretrained_model,
-                              learning_rate=learning_rate, optimizer=optimizer,
-                              best_acc=best_acc)
-
-    test_acc = return_dict['best_acc_this_run']
-    acc_list.append(test_acc)
-    if test_acc > best_acc:
-        best_acc = test_acc
-
-    print('Best test acc: {:.2f} %'.format(test_acc))
-
-print(f'acc_list: {acc_list}')
-avg_best_acc = sum(acc_list) / len(acc_list)
-print(f'Average best_acc: {round(avg_best_acc, 2)}')
+return_dict = model.train(train_image_indices, batch_size, num_epochs=num_epochs,
+                          train_method=train_method,
+                          lambda_1=lambda_1, lambda_2=lambda_2,
+                          start_from_pretrained_model=start_from_pretrained_model,
+                          learning_rate=learning_rate, optimizer=optimizer)
 
 # dump everything to pickle and save it
+# we don't use val set any more during training, just remove the last model
+
 train_acc_list = return_dict['train_acc_list']
-test_acc_list = return_dict['test_acc_list']
 train_loss_list = return_dict['train_loss_list']
-test_loss_list = return_dict['test_loss_list']
 penalty_inside_list = return_dict['penalty_inside_list']
 penalty_outside_list = return_dict['penalty_outside_list']
 
-model_log = {'num_epochs': num_epochs, 'train_method': train_method,
-             'lambda_1': lambda_1, 'lambda_2': lambda_2,
-             'train_acc': train_acc_list, 'test_acc': test_acc_list,
-             'train_loss': train_loss_list, 'test_loss': test_loss_list,
-             'penalty_inside': penalty_inside_list, 'penalty_outside': penalty_outside_list,
-             'model_name': model_name, 'start_from_pretrained_model': start_from_pretrained_model,
-             'learning_rate': learning_rate, 'optimizer': optimizer,
-             'acc_list': acc_list, 'avg_best_acc': avg_best_acc}
+model_log = {'num_epochs': num_epochs,
+             'train_method': train_method,
+             'lambda_1': lambda_1,
+             'lambda_2': lambda_2,
+             'train_acc': train_acc_list,
+             'train_loss': train_loss_list,
+             'penalty_inside': penalty_inside_list,
+             'penalty_outside': penalty_outside_list,
+             'model_name': model_name,
+             'start_from_pretrained_model': start_from_pretrained_model,
+             'learning_rate': learning_rate,
+             'optimizer': optimizer,
+             'acc_list': acc_list}
 
 log_path = results_folder + '/' + train_method + '_' + str(lambda_1) + '_' + str(lambda_2) + '.pickle'
 
@@ -180,18 +168,15 @@ end = time.time()
 elapsed_minutes = (end - start) / 60
 print(f'elapsed_minutes: {elapsed_minutes}')
 
-
 x = list(range(num_epochs))
 plt.subplot(221)
 plt.plot(x, train_acc_list, label='train_acc_' + train_method)
-plt.plot(x, test_acc_list, label='test_acc_' + train_method)
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 
 plt.subplot(222)
 plt.plot(x, train_loss_list, label='train_loss_' + train_method)
-plt.plot(x, test_loss_list, label='test_loss_' + train_method)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()

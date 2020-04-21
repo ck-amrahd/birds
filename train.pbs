@@ -27,9 +27,8 @@ cd birds/ || exit
 
 # echo $lambda_1 --> value of lambda_1
 # echo ${lambda_2[$PBS_ARRAY_INDEX]} --> value of lambda_2, index will come from qsub -J m:n
-# python3 train.py hpc/local gpu_id bbox/normal/blackout lambda_1 lambda_2 num_epochs num_average
-# num_average is the quantity that will run that many experiment to num_epochs and average out the result
+# python3 train.py hpc/local gpu_id bbox/normal/blackout lambda_1 lambda_2 num_epochs
 
-# singularity exec --nv $HOME/pytorch.simg python3 train.py hpc 0 bbox $lambda_1 ${lambda_2[$PBS_ARRAY_INDEX]} 50 1
+# singularity exec --nv $HOME/pytorch.simg python3 train.py hpc 0 bbox $lambda_1 ${lambda_2[$PBS_ARRAY_INDEX]} 50
 # for normal/blackout
-singularity exec --nv "$HOME"/pytorch.simg python3 train.py hpc 0 blackout $lambda_1 $lambda_2 50 1
+singularity exec --nv "$HOME"/pytorch.simg python3 train.py hpc 0 blackout $lambda_1 $lambda_2 50

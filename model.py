@@ -8,7 +8,7 @@ from torchvision import transforms, datasets
 
 
 class Model:
-    def __init__(self, model_name, train_folder_path, test_folder_path, x_train, y_train, device, num_channels, height,
+    def __init__(self, model_name, train_folder_path, x_train, y_train, device, num_channels, height,
                  width, checkpoint_path, bounding_box=None, num_labels=200):
         """
         Initializes the model along with other initialization
@@ -16,7 +16,6 @@ class Model:
 
         self.model_name = model_name
         self.train_folder_path = train_folder_path
-        self.test_folder_path = test_folder_path
         self.x_train = x_train
         self.y_train = y_train
         self.bounding_box = bounding_box
@@ -28,24 +27,12 @@ class Model:
         self.checkpoint_path = checkpoint_path
         self.train_dataset_length = len(os.listdir(self.train_folder_path))
 
-        self.test_dataset_length = 0
-        test_subfolders = os.listdir(self.test_folder_path)
-        for item in test_subfolders:
-            self.test_dataset_length += len(os.listdir(self.test_folder_path + '/' + item))
-
         # define test loaders
         self.test_transform = transforms.Compose([
             transforms.Resize((self.height, self.width)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        self.test_dataset = datasets.ImageFolder(self.test_folder_path, self.test_transform)
-
-        self.test_loader = torch.utils.data.DataLoader(self.test_dataset,
-                                                       batch_size=32,
-                                                       shuffle=False,
-                                                       num_workers=16,
-                                                       pin_memory=True)
 
     def initialize_model(self, start_from_pretrained_model=True):
         if self.model_name == 'alexnet':
@@ -163,11 +150,7 @@ class Model:
         penalty_inside_list = []
         penalty_outside_list = []
         train_acc_list = []
-        test_acc_list = []
         train_loss_list = []
-        test_loss_list = []
-
-        best_acc_this_run = 0.0
 
         for epoch in range(num_epochs):
             model.train()
@@ -225,45 +208,17 @@ class Model:
             print(f'Penalty Inside Box: {round(penalty_inside, 4)}')
             print(f'Penalty Outside Box: {round(penalty_outside, 4)}')
 
-            # validate after each epoch
-            test_correct = 0.0
-            test_loss = 0.0
-
-            model.eval()
-            with torch.no_grad():
-                for inputs_test, labels_test in self.test_loader:
-                    inputs_test, labels_test = inputs_test.to(self.device), labels_test.to(self.device)
-                    outputs_test = model(inputs_test)
-                    preds_test = torch.argmax(outputs_test, dim=1)
-                    loss_test = criterion(outputs_test, labels_test)
-
-                    test_loss += loss_test.item()
-                    test_correct += torch.sum(preds_test == labels_test).float().item()
-
-            test_loss = test_loss / self.test_dataset_length
-            test_loss_list.append(test_loss)
-            test_acc = test_correct / self.test_dataset_length
-            test_acc *= 100.0
-            test_acc_list.append(test_acc)
-            print('test Loss: {:.4f} Acc: {:.4f} % \n'.format(test_loss, test_acc))
-
-            if test_acc > best_acc:
-                best_acc = test_acc
+            # save the last mdel
+            if epoch == num_epochs - 1:
                 best_model = model.state_dict()
                 if os.path.exists(self.checkpoint_path):
                     os.remove(self.checkpoint_path)
 
                 torch.save(best_model, self.checkpoint_path)
 
-            if test_acc > best_acc_this_run:
-                best_acc_this_run = test_acc
-
         # model.load_state_dict(best_model)
-        return_dict = {'best_acc_this_run': best_acc_this_run,
-                       'train_acc_list': train_acc_list,
-                       'test_acc_list': test_acc_list,
+        return_dict = {'train_acc_list': train_acc_list,
                        'train_loss_list': train_loss_list,
-                       'test_loss_list': test_loss_list,
                        'penalty_inside_list': penalty_inside_list,
                        'penalty_outside_list': penalty_outside_list}
 
