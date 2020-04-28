@@ -4,23 +4,13 @@ from torchvision import transforms
 import foolbox as fb
 import numpy as np
 from torchvision import datasets, models
-import os
 import pickle
-import time
+import matplotlib.pyplot as plt
 
-start = time.time()
+best_models_path = 'adversarial/best_models.pickle'
+models_path = '/home/user/Models/Birds/resnet50'
+test_robust_file = 'adversarial/test_robust.pickle'
 
-# We need to generate 5 curves
-# one for normal, another for blackout, another for lamda_1=0 and varying lambda_2
-# another for lambda_1=lambda_2 and another for varying lambda_1 and lambda_2
-
-model_folders = {'normal': '/home/user/Models/Normal/resnet50/pth_files',
-                 'blackout': '/home/user/Models/Blackout/resnet50/pth_files',
-                 'lambda_equal': '/home/user/Models/BboxEqualL1L2/resnet50/pth_files',
-                 'lambda_1_zero': '/home/user/Models/BboxL10/resnet50/pth_files',
-                 'lambda_vary': '/home/user/Models/BboxL1L2/resnet50/pth_files'}
-
-# models_folder = 'results/foolbox3'
 test_dataset_path = 'data/test'
 num_classes = 200
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,18 +28,23 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
                                           num_workers=16,
                                           pin_memory=True)
 
-all_info = {}
-for train_method, folder_path in model_folders.items():
-    models_list = os.listdir(folder_path)
-    bounds = (0, 1)
-    epsilons = np.linspace(0, 0.1, num=10)
-    info = {}
-    print(f'Running Attacks...')
-    for model_name in models_list:
+test_robust_acc = {}
+best_models = pickle.load(open(best_models_path, 'rb'))
+for model_class, models_list in best_models.items():
+    test_robust_acc[model_class] = []
+
+# loop for each value of epsilons
+epsilons = np.linspace(0, 0.1, num=10)
+print('Running...')
+for idx, epsilon in enumerate(epsilons):
+    for model_class, models_list in best_models.items():
+        bounds = (0, 1)
+        model_name = models_list[idx]
+        model_path = models_path + '/' + model_name + '.pth'
         model = models.resnet50(pretrained=False)
         input_features = model.fc.in_features
         model.fc = nn.Linear(input_features, num_classes)
-        model.load_state_dict(torch.load(folder_path + '/' + model_name))
+        model.load_state_dict(torch.load(model_path))
 
         model.eval()
         fmodel = fb.PyTorchModel(model, bounds=bounds)
@@ -58,30 +53,20 @@ for train_method, folder_path in model_folders.items():
         robust_acc_list = []
         for inputs, labels in test_loader:
             inputs, labels = inputs.to(device), labels.to(device)
-            _, _, is_adv = attack(fmodel, inputs, labels, epsilons=epsilons)
-            robust_acc = 1 - is_adv.float().mean(axis=-1)
-            robust_acc_list.append(robust_acc)
+            _, _, is_adv = attack(fmodel, inputs, labels, epsilons=epsilon)
+            robust_acc = 1 - is_adv.float().mean()
+            robust_acc_list.append(robust_acc.cpu().numpy())
 
-        robust_acc = torch.stack(robust_acc_list)
-        robust_acc = torch.mean(robust_acc, dim=0)
-        model_name = model_name.strip().rsplit('.', 1)[0]
-        info[model_name] = robust_acc
+        avg_acc = np.mean(robust_acc_list)
+        test_robust_acc[model_class].append(avg_acc)
 
-        # for model, robust_acc in info.items():
-        #    plt.plot(epsilons, robust_acc.cpu().numpy(), label=model)
-
-        # plt.legend()
-        # plt.show()
-
-    all_info[train_method] = info
+# save the test_robust_acc
+with open(test_robust_file, 'wb') as write_file:
+    pickle.dump(test_robust_acc, write_file)
 
 
-log_path = 'adversarial/all_info.pickle'
+for model_class, robust_acc in test_robust_acc.items():
+    plt.plot(epsilons, robust_acc, label=model_class)
 
-with open(log_path, 'wb') as write_file:
-    pickle.dump(all_info, write_file)
-
-end = time.time()
-
-elapsed_hours = (end - start) / (60 * 60)
-print(f'elapsed_hours: {elapsed_hours}')
+plt.legend()
+plt.show()
