@@ -29,7 +29,7 @@ with open(info_file, 'rb') as read_file:
     for model_name, robust_acc in lambda_equal.items():
         robust_acc = robust_acc.cpu().numpy()
         for idx, item in enumerate(robust_acc):
-            if item > best_lambda_equal[idx]:
+            if item >= best_lambda_equal[idx]:
                 best_lambda_equal[idx] = item
                 best_models_lambda_equal[idx] = model_name
         # best_lambda_equal.append(robust_acc.cpu().numpy())
@@ -45,7 +45,7 @@ with open(info_file, 'rb') as read_file:
     for model_name, robust_acc in lambda_1_zero.items():
         robust_acc = robust_acc.cpu().numpy()
         for idx, item in enumerate(robust_acc):
-            if item > best_lambda_1_zero[idx]:
+            if item >= best_lambda_1_zero[idx]:
                 best_lambda_1_zero[idx] = item
                 best_models_lambda_1_zero[idx] = model_name
         # best_lambda_1_zero.append(robust_acc.cpu().numpy())
@@ -62,7 +62,7 @@ with open(info_file, 'rb') as read_file:
         # best_lambda_vary.append(robust_acc.cpu().numpy())
         robust_acc = robust_acc.cpu().numpy()
         for idx, item in enumerate(robust_acc):
-            if item > best_lambda_vary[idx]:
+            if item >= best_lambda_vary[idx]:
                 best_lambda_vary[idx] = item
                 best_models_lambda_vary[idx] = model_name
 
