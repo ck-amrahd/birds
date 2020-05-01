@@ -5,10 +5,11 @@ import torch.optim as optim
 import os
 from batch_loader import BatchLoader
 from torchvision import transforms, datasets
+from torch.optim.lr_scheduler import StepLR
 
 
 class Model:
-    def __init__(self, model_name, train_folder_path, x_train, y_train, device, num_channels, height,
+    def __init__(self, model_name, train_folder_path, x_train, y_train, val_path, device, num_channels, height,
                  width, checkpoint_path, bounding_box=None, num_labels=200):
         """
         Initializes the model along with other initialization
@@ -19,6 +20,7 @@ class Model:
         self.x_train = x_train
         self.y_train = y_train
         self.bounding_box = bounding_box
+        self.val_path = val_path
         self.device = device
         self.num_labels = num_labels
         self.num_channels = num_channels
@@ -27,12 +29,24 @@ class Model:
         self.checkpoint_path = checkpoint_path
         self.train_dataset_length = len(os.listdir(self.train_folder_path))
 
+        self.val_dataset_length = 0
+        val_subfolders = os.listdir(self.val_path)
+        for item in val_subfolders:
+            self.val_dataset_length += len(os.listdir(self.val_path + '/' + item))
+
         # define test loaders
-        self.test_transform = transforms.Compose([
+        self.val_transform = transforms.Compose([
             transforms.Resize((self.height, self.width)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
+
+        self.val_dataset = datasets.ImageFolder(self.val_path, self.val_transform)
+        self.val_loader = torch.utils.data.DataLoader(self.val_dataset,
+                                                      batch_size=64,
+                                                      shuffle=False,
+                                                      num_workers=16,
+                                                      pin_memory=True)
 
     def initialize_model(self, start_from_pretrained_model=True):
         if self.model_name == 'alexnet':
@@ -151,12 +165,18 @@ class Model:
         penalty_outside_list = []
         train_acc_list = []
         train_loss_list = []
+        val_loss_list = []
+        val_acc_list = []
+        best_acc = 0.0
+
+        scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
         for epoch in range(num_epochs):
+            scheduler.step()
             model.train()
             train_batch_loader.reset()
             print('Epoch: {}/{}'.format(epoch + 1, num_epochs))
-            print('-' * 15)
+            print('-' * 50)
 
             train_correct = 0.0
             train_loss = 0.0
@@ -208,8 +228,30 @@ class Model:
             print(f'Penalty Inside Box: {round(penalty_inside, 4)}')
             print(f'Penalty Outside Box: {round(penalty_outside, 4)}')
 
-            # save the last mdel
-            if epoch == num_epochs - 1:
+            # validate after each epoch
+            val_correct = 0.0
+            val_loss = 0.0
+            model.eval()
+            with torch.no_grad():
+                for inputs_val, labels_val in self.val_loader:
+                    inputs_val, labels_val = inputs_val.to(self.device), labels_val.to(self.device)
+                    outputs_val = model(inputs_val)
+                    preds_val = torch.argmax(outputs_val, dim=1)
+                    loss_test = criterion(outputs_val, labels_val)
+
+                    val_loss += loss_test.item()
+                    val_correct += torch.sum(preds_val == labels_val).float().item()
+
+            val_loss = val_loss / self.val_dataset_length
+            val_loss_list.append(val_loss)
+            val_acc = (val_correct / self.val_dataset_length) * 100.0
+            val_acc_list.append(val_acc)
+            print('Val Loss: {:.4f} Acc: {:.4f} % \n'.format(val_loss, val_acc))
+
+            # save the best model
+            if val_acc > best_acc:
+                best_acc = val_acc
+                model.state_dict()
                 if os.path.exists(self.checkpoint_path):
                     os.remove(self.checkpoint_path)
 
@@ -218,6 +260,8 @@ class Model:
         return_dict = {'train_acc_list': train_acc_list,
                        'train_loss_list': train_loss_list,
                        'penalty_inside_list': penalty_inside_list,
-                       'penalty_outside_list': penalty_outside_list}
+                       'penalty_outside_list': penalty_outside_list,
+                       'val_loss_list': val_loss_list,
+                       'val_acc_list': val_acc_list}
 
         return return_dict

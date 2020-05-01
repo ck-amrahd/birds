@@ -42,6 +42,7 @@ start_from_pretrained_model = True
 results_folder = 'results'
 
 train_folder_path = 'data/train'
+train_val_path = 'data/train_val'
 images_text_file = 'data/images.txt'
 bounding_box_file = 'data/bounding_boxes.txt'
 
@@ -67,9 +68,6 @@ if not os.path.exists(results_folder):
     os.makedirs(results_folder)
 
 checkpoint_path = results_folder + '/' + train_method + '_' + str(lambda_1) + '_' + str(lambda_2) + '.pth'
-
-# model --> model object
-# best_model --> best trained model on validataion dataset
 
 # load the train, val and test dataset and pass to different functions
 print('Loading required Tensors....\n')
@@ -121,15 +119,10 @@ else:
         class_id = get_class_id(img_name)
         Y_train[idx] = int(class_id) - 1  # to make consistent labels to the and test set
 
-model = Model(model_name, train_folder_path, X_train, Y_train, device, num_channels, height,
+model = Model(model_name, train_folder_path, X_train, Y_train, train_val_path, device, num_channels, height,
               width, checkpoint_path, bounding_box, num_labels)
 
 train_image_indices = list(range(len(train_images)))
-
-# run 5 times and average out
-
-acc_list = []
-best_acc = 0.0
 
 return_dict = model.train(train_image_indices, batch_size, num_epochs=num_epochs,
                           train_method=train_method,
@@ -144,20 +137,23 @@ train_acc_list = return_dict['train_acc_list']
 train_loss_list = return_dict['train_loss_list']
 penalty_inside_list = return_dict['penalty_inside_list']
 penalty_outside_list = return_dict['penalty_outside_list']
+val_loss_list = return_dict['val_loss_list']
+val_acc_list = return_dict['val_acc_list']
 
 model_log = {'num_epochs': num_epochs,
              'train_method': train_method,
              'lambda_1': lambda_1,
              'lambda_2': lambda_2,
-             'train_acc': train_acc_list,
-             'train_loss': train_loss_list,
-             'penalty_inside': penalty_inside_list,
-             'penalty_outside': penalty_outside_list,
+             'train_acc_list': train_acc_list,
+             'train_loss_list': train_loss_list,
+             'penalty_inside_list': penalty_inside_list,
+             'penalty_outside_list': penalty_outside_list,
              'model_name': model_name,
              'start_from_pretrained_model': start_from_pretrained_model,
              'learning_rate': learning_rate,
              'optimizer': optimizer,
-             'acc_list': acc_list}
+             'val_loss_list': val_loss_list,
+             'val_acc_list': val_acc_list}
 
 log_path = results_folder + '/' + train_method + '_' + str(lambda_1) + '_' + str(lambda_2) + '.pickle'
 
@@ -166,7 +162,7 @@ with open(log_path, 'wb') as write_file:
 
 end = time.time()
 elapsed_minutes = (end - start) / 60
-print(f'elapsed_minutes: {elapsed_minutes}')
+print(f'elapsed_minutes: {round(elapsed_minutes, 2)}')
 
 x = list(range(num_epochs))
 plt.subplot(221)
