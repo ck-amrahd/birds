@@ -55,7 +55,7 @@ for folder_name in folders:
     images = os.listdir(images_path + '/' + folder_name)
     total_images = len(images)
     indices = list(range(total_images))
-    train_indices = random.sample(indices, math.ceil(total_images / 2))
+    train_indices = random.sample(indices, math.ceil(total_images / 2) + 5)
     train_images = []
     for idx in train_indices:
         train_images.append(images[idx])

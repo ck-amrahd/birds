@@ -22,7 +22,7 @@ gpu_id = sys.argv[2]
 train_method = sys.argv[3]
 
 num_epochs = int(sys.argv[6])
-learning_rate = 0.01
+learning_rate = 0.001
 
 if machine == 'hpc':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -139,6 +139,10 @@ penalty_inside_list = return_dict['penalty_inside_list']
 penalty_outside_list = return_dict['penalty_outside_list']
 val_loss_list = return_dict['val_loss_list']
 val_acc_list = return_dict['val_acc_list']
+best_acc = return_dict['best_acc']
+
+print('\n')
+print(f'best_acc: {best_acc}')
 
 model_log = {'num_epochs': num_epochs,
              'train_method': train_method,
@@ -167,12 +171,14 @@ print(f'elapsed_minutes: {round(elapsed_minutes, 2)}')
 x = list(range(num_epochs))
 plt.subplot(221)
 plt.plot(x, train_acc_list, label='train_acc_' + train_method)
+plt.plot(x, val_acc_list, label='val_acc_' + train_method)
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 
 plt.subplot(222)
 plt.plot(x, train_loss_list, label='train_loss_' + train_method)
+plt.plot(x, val_loss_list, label='val_loss_' + train_method)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()

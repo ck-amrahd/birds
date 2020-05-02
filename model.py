@@ -134,7 +134,7 @@ class Model:
         return penalty_inside_box, penalty_outside_box
 
     def train(self, train_image_indices, batch_size, num_epochs=50, train_method='normal', lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD'):
+              start_from_pretrained_model=True, learning_rate=0.001, optimizer='SGD'):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
@@ -172,7 +172,6 @@ class Model:
         scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
         for epoch in range(num_epochs):
-            scheduler.step()
             model.train()
             train_batch_loader.reset()
             print('Epoch: {}/{}'.format(epoch + 1, num_epochs))
@@ -257,11 +256,14 @@ class Model:
 
                 torch.save(model.state_dict(), self.checkpoint_path)
 
+            scheduler.step()
+
         return_dict = {'train_acc_list': train_acc_list,
                        'train_loss_list': train_loss_list,
                        'penalty_inside_list': penalty_inside_list,
                        'penalty_outside_list': penalty_outside_list,
                        'val_loss_list': val_loss_list,
-                       'val_acc_list': val_acc_list}
+                       'val_acc_list': val_acc_list,
+                       'best_acc': best_acc}
 
         return return_dict
