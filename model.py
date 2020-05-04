@@ -134,7 +134,7 @@ class Model:
         return penalty_inside_box, penalty_outside_box
 
     def train(self, train_image_indices, batch_size, num_epochs=50, train_method='normal', lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True, learning_rate=0.001, optimizer='SGD'):
+              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD'):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)

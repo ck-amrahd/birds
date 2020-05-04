@@ -22,7 +22,7 @@ gpu_id = sys.argv[2]
 train_method = sys.argv[3]
 
 num_epochs = int(sys.argv[6])
-learning_rate = 0.001
+learning_rate = 0.01
 
 if machine == 'hpc':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
