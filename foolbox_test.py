@@ -7,9 +7,9 @@ from torchvision import datasets, models
 import pickle
 import matplotlib.pyplot as plt
 
-best_models_path = 'adversarial/best_models.pickle'
+best_models_path = 'adversarial/best_models_exp1.pickle'
 models_path = '/home/user/Models/Birds/resnet50'
-test_robust_file = 'adversarial/test_robust.pickle'
+test_robust_file = 'adversarial/test_robust_exp1.pickle'
 
 test_dataset_path = 'data/test'
 num_classes = 200
@@ -30,11 +30,12 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
 
 test_robust_acc = {}
 best_models = pickle.load(open(best_models_path, 'rb'))
+
 for model_class, models_list in best_models.items():
     test_robust_acc[model_class] = []
 
 # loop for each value of epsilons
-epsilons = np.linspace(0, 0.1, num=10)
+epsilons = np.linspace(0, 1, num=10)
 print('Running...')
 for idx, epsilon in enumerate(epsilons):
     for model_class, models_list in best_models.items():

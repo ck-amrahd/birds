@@ -5,7 +5,6 @@ import torch.optim as optim
 import os
 from batch_loader import BatchLoader
 from torchvision import transforms, datasets
-from torch.optim.lr_scheduler import StepLR
 
 
 class Model:
@@ -169,8 +168,6 @@ class Model:
         val_acc_list = []
         best_acc = 0.0
 
-        scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
-
         for epoch in range(num_epochs):
             model.train()
             train_batch_loader.reset()
@@ -255,8 +252,6 @@ class Model:
                     os.remove(self.checkpoint_path)
 
                 torch.save(model.state_dict(), self.checkpoint_path)
-
-            scheduler.step()
 
         return_dict = {'train_acc_list': train_acc_list,
                        'train_loss_list': train_loss_list,

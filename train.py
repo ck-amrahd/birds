@@ -141,7 +141,6 @@ val_loss_list = return_dict['val_loss_list']
 val_acc_list = return_dict['val_acc_list']
 best_acc = return_dict['best_acc']
 
-print('\n')
 print(f'best_acc: {best_acc}')
 
 model_log = {'num_epochs': num_epochs,

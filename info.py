@@ -3,10 +3,10 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-info_file = 'adversarial/all_info.pickle'
-epsilons = np.linspace(0, 0.1, num=10)
+info_file = 'adversarial/all_info_exp1.pickle'
+epsilons = np.linspace(0, 1, num=10)
 
-best_models_path = 'adversarial/best_models.pickle'
+best_models_path = 'adversarial/best_models_exp1.pickle'
 best_models = {}
 
 with open(info_file, 'rb') as read_file:
