@@ -18,13 +18,16 @@ start = time.time()
 # one for normal, another for blackout, another for lamda_1=0 and varying lambda_2
 # another for lambda_1=lambda_2 and another for varying lambda_1 and lambda_2
 
-log_path = 'adversarial/all_info_exp1_pgd.pickle'
+log_path = 'adversarial/all_info_exp2.pickle'
+experiment_folder = '/home/user/Models/Experiment-2/'
 
-model_folders = {'normal': '/home/user/Models/Normal/resnet50/pth_files',
-                 'blackout': '/home/user/Models/Blackout/resnet50/pth_files',
-                 'lambda_equal': '/home/user/Models/BboxEqualL1L2/resnet50/pth_files',
-                 'lambda_1_zero': '/home/user/Models/BboxL10/resnet50/pth_files',
-                 'lambda_vary': '/home/user/Models/BboxL1L2/resnet50/pth_files'}
+# put lambda_1_zero into lambda_vary and create four classes
+# 'lambda_1_zero': experiment_folder + 'BboxL10/resnet50/pth_files',
+
+model_folders = {'normal': experiment_folder + 'Normal/resnet50/pth_files',
+                 'blackout': experiment_folder + 'Blackout/resnet50/pth_files',
+                 'lambda_equal': experiment_folder + 'BboxEqualL1L2/resnet50/pth_files',
+                 'lambda_vary': experiment_folder + 'BboxL1L2/resnet50/pth_files'}
 
 # We will use val set to select the best values of lambda_1 and lambda_2 from each family of the above
 # discussed models.
@@ -50,7 +53,7 @@ all_info = {}
 for train_method, folder_path in model_folders.items():
     models_list = os.listdir(folder_path)
     bounds = (0, 1)
-    epsilons = np.linspace(0, 1, num=10)
+    epsilons = np.linspace(0, 0.2, num=20)
     info = {}
     print(f'Running Attacks...')
     for model_name in models_list:
@@ -61,8 +64,7 @@ for train_method, folder_path in model_folders.items():
 
         model.eval()
         fmodel = fb.PyTorchModel(model, bounds=bounds)
-        # attack = fb.attacks.FGSM()
-        attack = fb.attacks.LinfProjectedGradientDescentAttack()
+        attack = fb.attacks.FGSM()
 
         robust_acc_list = []
         for inputs, labels in val_loader:

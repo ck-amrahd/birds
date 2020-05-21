@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-info_file = 'adversarial/all_info_exp1.pickle'
+info_file = 'adversarial/all_info_exp2.pickle'
 epsilons = np.linspace(0, 0.1, num=10)
 
 value_index = {'0.0': 0, '0.1': 1, '0.22': 2, '0.46': 3, '1.0': 4, '2.15': 5, '4.64': 6, '10.0': 7, '21.54': 8,
@@ -28,11 +28,11 @@ for index, epsilon in enumerate(epsilons):
             _, lambda_1, lambda_2 = model_name.split('_')
             heatmap_array[value_index[lambda_1], value_index[lambda_2]] = robust_acc[index]
 
-        lambda_1_zero = info['lambda_1_zero']
-        for model_name, robust_acc in lambda_1_zero.items():
-            robust_acc = robust_acc.cpu().numpy()
-            _, lambda_1, lambda_2 = model_name.split('_')
-            heatmap_array[value_index[lambda_1], value_index[lambda_2]] = robust_acc[index]
+        # lambda_1_zero = info['lambda_1_zero']
+        # for model_name, robust_acc in lambda_1_zero.items():
+        #    robust_acc = robust_acc.cpu().numpy()
+        #    _, lambda_1, lambda_2 = model_name.split('_')
+        #    heatmap_array[value_index[lambda_1], value_index[lambda_2]] = robust_acc[index]
 
         lambda_vary = info['lambda_vary']
         for model_name, robust_acc in lambda_vary.items():

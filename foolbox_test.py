@@ -7,9 +7,9 @@ from torchvision import datasets, models
 import pickle
 import matplotlib.pyplot as plt
 
-best_models_path = 'adversarial/best_models_exp1.pickle'
-models_path = '/home/user/Models/Birds/resnet50'
-test_robust_file = 'adversarial/test_robust_exp1.pickle'
+best_models_path = 'adversarial/best_models_exp2.pickle'
+models_path = '/home/user/Models/Experiment-2/All/resnet50'
+test_robust_file = 'adversarial/test_robust_exp2.pickle'
 
 test_dataset_path = 'data/test'
 num_classes = 200
@@ -35,7 +35,7 @@ for model_class, models_list in best_models.items():
     test_robust_acc[model_class] = []
 
 # loop for each value of epsilons
-epsilons = np.linspace(0, 1, num=10)
+epsilons = np.linspace(0, 0.2, num=20)
 print('Running...')
 for idx, epsilon in enumerate(epsilons):
     for model_class, models_list in best_models.items():
@@ -66,8 +66,10 @@ with open(test_robust_file, 'wb') as write_file:
     pickle.dump(test_robust_acc, write_file)
 
 
+# fig = plt.figure(figsize=(19.20, 10.80))
 for model_class, robust_acc in test_robust_acc.items():
     plt.plot(epsilons, robust_acc, label=model_class)
 
+# plt.savefig('test.png', format='png')
 plt.legend()
 plt.show()
