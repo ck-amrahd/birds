@@ -18,8 +18,8 @@ start = time.time()
 # one for normal, another for blackout, another for lamda_1=0 and varying lambda_2
 # another for lambda_1=lambda_2 and another for varying lambda_1 and lambda_2
 
-log_path = 'adversarial/all_info_exp2.pickle'
-experiment_folder = '/home/user/Models/Experiment-2/'
+log_path = 'adversarial/all_info_exp3.pickle'
+experiment_folder = '/home/user/Models/Experiment-3/'
 
 # put lambda_1_zero into lambda_vary and create four classes
 # 'lambda_1_zero': experiment_folder + 'BboxL10/resnet50/pth_files',

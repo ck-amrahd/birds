@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-info_file = 'adversarial/all_info_exp2.pickle'
+info_file = 'adversarial/all_info_exp3.pickle'
 epsilons = np.linspace(0, 0.1, num=10)
 
 value_index = {'0.0': 0, '0.1': 1, '0.22': 2, '0.46': 3, '1.0': 4, '2.15': 5, '4.64': 6, '10.0': 7, '21.54': 8,
