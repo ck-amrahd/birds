@@ -3,11 +3,11 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-info_file = 'adversarial/all_info_exp3.pickle'
+info_file = 'adversarial/all_info_exp4.pickle'
 num_epsilons = 20
 epsilons = np.linspace(0, 0.2, num=num_epsilons)
 
-best_models_path = 'adversarial/best_models_exp3.pickle'
+best_models_path = 'adversarial/best_models_exp4.pickle'
 best_models = {}
 
 with open(info_file, 'rb') as read_file:

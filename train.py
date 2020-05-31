@@ -37,7 +37,7 @@ lambda_2 = float(sys.argv[5])
 optimizer = 'SGD'
 # optimizer = 'Adam'
 
-model_name = 'resnet50'
+model_name = 'resnet18'
 start_from_pretrained_model = True
 results_folder = 'results'
 
@@ -75,6 +75,7 @@ train_images = sorted(os.listdir(train_folder_path))
 total_images = len(train_images)
 
 X_train = torch.zeros(total_images, num_channels, height, width)
+# Y_train = torch.tensor([0] * total_images)
 Y_train = torch.tensor([0] * total_images)
 
 bounding_box = None
