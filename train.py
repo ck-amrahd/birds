@@ -37,7 +37,7 @@ lambda_2 = float(sys.argv[5])
 optimizer = 'SGD'
 # optimizer = 'Adam'
 
-model_name = 'resnet18'
+model_name = 'vgg16'
 start_from_pretrained_model = True
 results_folder = 'results'
 
@@ -157,7 +157,8 @@ model_log = {'num_epochs': num_epochs,
              'learning_rate': learning_rate,
              'optimizer': optimizer,
              'val_loss_list': val_loss_list,
-             'val_acc_list': val_acc_list}
+             'val_acc_list': val_acc_list,
+             'best_acc': best_acc}
 
 log_path = results_folder + '/' + train_method + '_' + str(lambda_1) + '_' + str(lambda_2) + '.pickle'
 

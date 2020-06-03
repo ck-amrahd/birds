@@ -12,15 +12,14 @@ test_robust_acc_2 = pickle.load(open(test_robust_file_2, 'rb'))
 test_robust_acc_3 = pickle.load(open(test_robust_file_3, 'rb'))
 test_robust_acc_4 = pickle.load(open(test_robust_file_4, 'rb'))
 
-for model_class, robust_acc in test_robust_acc_4.items():
-    if model_class == 'lambda_vary' or model_class == 'lambda_equal':
-        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
-        plt.plot(epsilons, robust_acc, label=model_class)
+# for model_class, robust_acc in test_robust_acc_4.items():
+#    if model_class == 'lambda_vary' or model_class == 'lambda_equal':
+#        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+#        plt.plot(epsilons, robust_acc, label=model_class)
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
-exit()
 
 # average graph between experiments
 

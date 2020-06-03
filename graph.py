@@ -1,7 +1,7 @@
 import pickle
 import matplotlib.pyplot as plt
 
-pickle_file_name = '/home/user/Models/Birds/resnet50/bbox_100.0_100.0.pickle'
+pickle_file_name = '/home/user/Models/Experiment-5/All/bbox_0.0_21.54.pickle'
 
 with open(pickle_file_name, 'rb') as read_file:
     model_log = pickle.load(read_file)
@@ -17,6 +17,9 @@ with open(pickle_file_name, 'rb') as read_file:
     train_loss_list = model_log.get('train_loss_list')
     val_loss_list = model_log.get('val_loss_list')
 
+
+best_acc = max(val_acc_list)
+print(f'best_acc: {round(best_acc, 2)}')
 
 x = list(range(num_epochs))
 plt.subplot(221)

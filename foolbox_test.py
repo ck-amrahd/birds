@@ -7,9 +7,9 @@ from torchvision import datasets, models
 import pickle
 import matplotlib.pyplot as plt
 
-best_models_path = 'adversarial/best_models_exp4.pickle'
-models_path = '/home/user/Models/Experiment-4/All/resnet50'
-test_robust_file = 'adversarial/test_robust_exp4.pickle'
+best_models_path = 'adversarial/best_models_exp5.pickle'
+models_path = '/home/user/Models/Experiment-5/All'
+test_robust_file = 'adversarial/test_robust_exp5.pickle'
 
 test_dataset_path = 'data/test'
 num_classes = 200
@@ -42,7 +42,8 @@ for idx, epsilon in enumerate(epsilons):
         bounds = (0, 1)
         model_name = models_list[idx]
         model_path = models_path + '/' + model_name + '.pth'
-        model = models.resnet50(pretrained=False)
+        # model = models.resnet50(pretrained=False)
+        model = models.resnet18(pretrained=False)
         input_features = model.fc.in_features
         model.fc = nn.Linear(input_features, num_classes)
         model.load_state_dict(torch.load(model_path))
