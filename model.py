@@ -88,6 +88,22 @@ class Model:
             input_features = model.fc.in_features
             model.fc = nn.Linear(input_features, self.num_labels)
 
+        elif self.model_name == 'resnet34':
+            if start_from_pretrained_model:
+                model = models.resnet34(pretrained=True)
+            else:
+                model = models.resnet34(pretrained=False)
+            input_features = model.fc.in_features
+            model.fc = nn.Linear(input_features, self.num_labels)
+
+        elif self.model_name == 'resnet101':
+            if start_from_pretrained_model:
+                model = models.resnet101(pretrained=True)
+            else:
+                model = models.resnet101(pretrained=False)
+            input_features = model.fc.in_features
+            model.fc = nn.Linear(input_features, self.num_labels)
+
         else:
             if start_from_pretrained_model:
                 model = models.resnet18(pretrained=True)

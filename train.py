@@ -37,7 +37,7 @@ lambda_2 = float(sys.argv[5])
 optimizer = 'SGD'
 # optimizer = 'Adam'
 
-model_name = 'resnet152'
+model_name = 'resnet34'
 start_from_pretrained_model = True
 results_folder = 'results'
 
