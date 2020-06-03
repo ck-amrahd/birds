@@ -37,7 +37,7 @@ lambda_2 = float(sys.argv[5])
 optimizer = 'SGD'
 # optimizer = 'Adam'
 
-model_name = 'vgg16'
+model_name = 'resnet152'
 start_from_pretrained_model = True
 results_folder = 'results'
 
@@ -52,7 +52,7 @@ height = 224
 width = 224
 
 # number of epochs to train for each train_image_indices
-batch_size = 32
+batch_size = 64
 
 transform = transforms.Compose([
     transforms.Resize((height, width)),
