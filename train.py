@@ -52,7 +52,7 @@ height = 224
 width = 224
 
 # number of epochs to train for each train_image_indices
-batch_size = 64
+batch_size = 32
 
 transform = transforms.Compose([
     transforms.Resize((height, width)),
