@@ -53,12 +53,12 @@ all_info = {}
 for train_method, folder_path in model_folders.items():
     models_list = os.listdir(folder_path)
     bounds = (0, 1)
-    epsilons = np.linspace(0, 0.2, num=20)
+    epsilons = np.linspace(0, 0.2, num=10)
     info = {}
     print(f'Running Attacks...')
     for model_name in models_list:
         # model = models.resnet50(pretrained=False)
-        model = models.resnet18(pretrained=False)
+        model = models.resnet101(pretrained=False)
         input_features = model.fc.in_features
         model.fc = nn.Linear(input_features, num_classes)
         model.load_state_dict(torch.load(folder_path + '/' + model_name))

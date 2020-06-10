@@ -35,7 +35,7 @@ for model_class, models_list in best_models.items():
     test_robust_acc[model_class] = []
 
 # loop for each value of epsilons
-epsilons = np.linspace(0, 0.2, num=20)
+epsilons = np.linspace(0, 0.2, num=10)
 print('Running...')
 for idx, epsilon in enumerate(epsilons):
     for model_class, models_list in best_models.items():
@@ -43,7 +43,7 @@ for idx, epsilon in enumerate(epsilons):
         model_name = models_list[idx]
         model_path = models_path + '/' + model_name + '.pth'
         # model = models.resnet50(pretrained=False)
-        model = models.resnet18(pretrained=False)
+        model = models.resnet101(pretrained=False)
         input_features = model.fc.in_features
         model.fc = nn.Linear(input_features, num_classes)
         model.load_state_dict(torch.load(model_path))
