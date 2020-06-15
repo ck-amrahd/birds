@@ -200,7 +200,6 @@ class Model:
                 inputs = self.x_train[batch_indices]
                 labels = self.y_train[batch_indices]
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-                optimizer.zero_grad()
 
                 if train_method == 'bbox':
                     inputs.requires_grad_()
@@ -210,6 +209,7 @@ class Model:
                     input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
                     penalty_inside_box, penalty_outside_box = self.calculate_penalty_box(batch_indices, input_gradient)
                     new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
+                    optimizer.zero_grad()
                     new_loss.backward()
                     optimizer.step()
 
@@ -217,6 +217,7 @@ class Model:
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
                     loss = criterion(outputs, labels)
+                    optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
                     penalty_inside_box = torch.tensor(0).to(self.device)

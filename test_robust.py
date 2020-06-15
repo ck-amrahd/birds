@@ -8,15 +8,16 @@ test_robust_file_2 = 'adversarial/test_robust_exp2.pickle'
 test_robust_file_3 = 'adversarial/test_robust_exp3.pickle'
 test_robust_file_4 = 'adversarial/test_robust_exp4.pickle'
 test_robust_file_5 = 'adversarial/test_robust_exp5.pickle'
+test_robust_file_6 = 'adversarial/test_robust_exp6.pickle'
 
 test_robust_acc_1 = pickle.load(open(test_robust_file_1, 'rb'))
 test_robust_acc_2 = pickle.load(open(test_robust_file_2, 'rb'))
 test_robust_acc_3 = pickle.load(open(test_robust_file_3, 'rb'))
 test_robust_acc_4 = pickle.load(open(test_robust_file_4, 'rb'))
-
 test_robust_acc_5 = pickle.load(open(test_robust_file_5, 'rb'))
+test_robust_acc_6 = pickle.load(open(test_robust_file_6, 'rb'))
 
-for model_class, robust_acc in test_robust_acc_5.items():
+for model_class, robust_acc in test_robust_acc_6.items():
     if model_class == 'lambda_vary' or model_class == 'lambda_equal':
         plt.plot(epsilons, robust_acc, label=model_class)
 
@@ -39,7 +40,7 @@ for model_class, robust_acc in test_robust_acc_1.items():
     else:
         continue
 """
-
+"""
 for model_class, robust_acc in test_robust_acc_2.items():
     if model_class == 'lambda_vary':
         robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
@@ -66,6 +67,23 @@ for model_class, robust_acc in test_robust_acc_4.items():
         robust_acc_vary.append(robust_acc)
     elif model_class == 'lambda_equal':
         robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_equal.append(robust_acc)
+    else:
+        continue
+"""
+
+for model_class, robust_acc in test_robust_acc_5.items():
+    if model_class == 'lambda_vary':
+        robust_acc_vary.append(robust_acc)
+    elif model_class == 'lambda_equal':
+        robust_acc_equal.append(robust_acc)
+    else:
+        continue
+
+for model_class, robust_acc in test_robust_acc_6.items():
+    if model_class == 'lambda_vary':
+        robust_acc_vary.append(robust_acc)
+    elif model_class == 'lambda_equal':
         robust_acc_equal.append(robust_acc)
     else:
         continue
