@@ -37,11 +37,11 @@ lambda_2 = float(sys.argv[5])
 optimizer = 'SGD'
 # optimizer = 'Adam'
 
-model_name = 'resnet50'
+model_name = 'resnet101'
 start_from_pretrained_model = True
 # set grad_loss_input = True to calculate gradient of loss wrt input
 # set grad_loss_input = False to calculate the gradient of prediction wrt input
-grad_loss_input = False
+grad_loss_input = True
 results_folder = 'results'
 
 train_folder_path = 'data/train'
