@@ -129,11 +129,6 @@ class Model:
         penalty_inside_box = penalty_inside_box * input_gradient
         penalty_inside_box = (torch.norm(penalty_inside_box)) ** 2
 
-        # per example norm calculation
-        # penalty_inside_box = penalty_inside_box.view(batch_size, -1)
-        # penalty_inside_box = torch.sum(penalty_inside_box ** 2, dim=1)
-        # penalty_inside_box = penalty_inside_box.sum()
-
         # make inside box to 0 and outside box to ones, so when we take element-wise product with the
         # input gradient, we will just get a patch from outside the box
 
@@ -149,7 +144,7 @@ class Model:
         return penalty_inside_box, penalty_outside_box
 
     def train(self, train_image_indices, batch_size, num_epochs=50, train_method='normal', lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD'):
+              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD', grad_loss_input=True):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
@@ -200,16 +195,22 @@ class Model:
                 inputs = self.x_train[batch_indices]
                 labels = self.y_train[batch_indices]
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-                optimizer.zero_grad()
 
                 if train_method == 'bbox':
                     inputs.requires_grad_()
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
                     loss = criterion(outputs, labels)
-                    input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
+                    if grad_loss_input:
+                        input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
+                    else:
+                        indices = torch.arange(len(batch_indices))
+                        out = outputs[indices, labels].sum()
+                        input_gradient = torch.autograd.grad(out, inputs, create_graph=True)[0]
+
                     penalty_inside_box, penalty_outside_box = self.calculate_penalty_box(batch_indices, input_gradient)
                     new_loss = loss + lambda_1 * penalty_inside_box + lambda_2 * penalty_outside_box
+                    optimizer.zero_grad()
                     new_loss.backward()
                     optimizer.step()
 
@@ -217,6 +218,7 @@ class Model:
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
                     loss = criterion(outputs, labels)
+                    optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
                     penalty_inside_box = torch.tensor(0).to(self.device)

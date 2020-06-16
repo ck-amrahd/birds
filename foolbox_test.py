@@ -7,9 +7,9 @@ from torchvision import datasets, models
 import pickle
 import matplotlib.pyplot as plt
 
-best_models_path = 'adversarial/best_models_exp5.pickle'
-models_path = '/home/user/Models/Experiment-5/All'
-test_robust_file = 'adversarial/test_robust_exp5.pickle'
+best_models_path = 'adversarial/best_models_exp6.pickle'
+models_path = '/home/user/Models/Experiment-6/All'
+test_robust_file = 'adversarial/test_robust_exp6.pickle'
 
 test_dataset_path = 'data/test'
 num_classes = 200
