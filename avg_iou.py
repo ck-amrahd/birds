@@ -41,10 +41,10 @@ subfolders = sorted(os.listdir(test_folder_path))
 bbox = BoundingBox(test_folder_path, images_text_file, bounding_box_file, height, width)
 
 
-def calculate_iou(m_name, m_iou):
+def calculate_iou(m_name, m_iou, gpu_id):
     checkpoint_path = checkpoint_folder + '/' + m_name
     criterion = nn.CrossEntropyLoss()
-    model = load_model(checkpoint_path, num_labels)
+    model = load_model(checkpoint_path, num_labels, gpu_id)
     average_iou = []
     for folder_name in subfolders:
         label = int(folder_name.split('.')[0]) - 1
@@ -54,7 +54,8 @@ def calculate_iou(m_name, m_iou):
             img_path = test_folder_path + '/' + folder_name + '/' + img_name
             x1_gt, y1_gt, x2_gt, y2_gt = bbox.get_bbox_from_path(img_path)
             gt = [x1_gt, y1_gt, x2_gt, y2_gt]
-            grad = predict(model, img_path, transform, criterion, target_tensor, height, width, num_channels)
+            grad = predict(model, img_path, transform, criterion, target_tensor, height, width,
+                           num_channels, gpu_id)
             pred = bounding_box_grad(grad)
             overlap = check_overlap(pred, gt)
             if overlap:
@@ -67,18 +68,31 @@ def calculate_iou(m_name, m_iou):
     m_iou[model_name] = np.mean(average_iou)
 
 
+def generator_from_list(lst, n):
+    # generates n sized chunk from the given list
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 manager = multiprocessing.Manager()
 models_iou = manager.dict()
 jobs = []
-for model_name in all_models:
-    # avg_iou = calculate_iou(model_name)
-    # models_iou[model_name] = avg_iou
-    p = multiprocessing.Process(target=calculate_iou, args=(model_name, models_iou))
+for idx, model_name in enumerate(all_models):
+    gpu_id = str(idx % 4)
+    p = multiprocessing.Process(target=calculate_iou, args=(model_name, models_iou, gpu_id))
     jobs.append(p)
-    p.start()
 
-for proc in jobs:
-    proc.join()
+n = 4
+counter = 0
+for chunks in generator_from_list(jobs, n):
+    for proc in chunks:
+        proc.start()
+
+    for p in chunks:
+        p.join()
+
+    counter += n
+    print(f'{counter} models done.')
 
 with open(results_file, 'wb') as write_file:
     pickle.dump(models_iou, write_file)

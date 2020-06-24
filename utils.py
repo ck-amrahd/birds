@@ -132,11 +132,13 @@ def bounding_box_grad(grad):
     return pred
 
 
-def load_model(checkpoint_path, num_labels):
+def load_model(checkpoint_path, num_labels, gpu_id):
     model = models.resnet50(pretrained=False)
     input_features = model.fc.in_features
     model.fc = nn.Linear(input_features, num_labels)
-    checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path, map_location='cpu')
     model.load_state_dict(checkpoint)
+    device = torch.device('cuda:' + gpu_id)
+    model = model.to(device)
     model.eval()
     return model
