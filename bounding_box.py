@@ -3,8 +3,8 @@ import cv2
 
 
 class BoundingBox:
-    def __init__(self, train_folder_path, img_file, bbox_file, height, width):
-        self.train_folder_path = train_folder_path
+    def __init__(self, folder_path, img_file, bbox_file, height, width):
+        self.folder_path = folder_path
         self.img_file = img_file
         self.bbox_file = bbox_file
         self.height = height
@@ -27,7 +27,7 @@ class BoundingBox:
                 self.idToBbox[image_id] = (x, y, width, height)
 
     def get_bbox(self, image_name):
-        img = cv2.imread(self.train_folder_path + '/' + image_name)
+        img = cv2.imread(self.folder_path + '/' + image_name)
         height, width, channels = img.shape
         image_id = self.imgNameToId[image_name.lower()]
         x, y, w, h = self.idToBbox[image_id]
@@ -50,4 +50,24 @@ class BoundingBox:
         x, y, w, h = self.idToBbox[image_id]
         x, y, w, h = float(x), float(y), float(w), float(h)
         x1, y1, x2, y2 = int(x), int(y), int(x + w), int(y + h)
+        return x1, y1, x2, y2
+
+    def get_bbox_from_path(self, img_path):
+        img = cv2.imread(img_path)
+        height, width, channels = img.shape
+        image_name = img_path.rsplit('/', 1)[-1]
+        image_id = self.imgNameToId[image_name.lower()]
+        x, y, w, h = self.idToBbox[image_id]
+        x, y, w, h = float(x), float(y), float(w), float(h)
+
+        x_scale = self.width / width
+        y_scale = self.height / height
+
+        x_scaled = x * x_scale
+        y_scaled = y * y_scale
+        w_scaled = w * x_scale
+        h_scaled = h * y_scale
+
+        x1, y1, x2, y2 = int(x_scaled), int(y_scaled), int(x_scaled + w_scaled), int(y_scaled + h_scaled)
+
         return x1, y1, x2, y2

@@ -144,7 +144,7 @@ class Model:
         return penalty_inside_box, penalty_outside_box
 
     def train(self, train_image_indices, batch_size, num_epochs=50, train_method='normal', lambda_1=0, lambda_2=0,
-              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD', grad_loss_input=True):
+              start_from_pretrained_model=True, learning_rate=0.01, optimizer='SGD', grad_loss_input=True, margin_loss=False):
 
         if os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
@@ -200,10 +200,15 @@ class Model:
                     inputs.requires_grad_()
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
+
+                    # cross entropy loss
                     loss = criterion(outputs, labels)
+
                     if grad_loss_input:
+                        # grad of loss wrt input
                         input_gradient = torch.autograd.grad(loss, inputs, create_graph=True)[0]
                     else:
+                        # grad of prediction wrt input
                         indices = torch.arange(len(batch_indices))
                         out = outputs[indices, labels].sum()
                         input_gradient = torch.autograd.grad(out, inputs, create_graph=True)[0]
@@ -217,14 +222,42 @@ class Model:
                 else:
                     outputs = model(inputs)
                     preds = torch.argmax(outputs, dim=1)
+
+                    # cross entropy loss
                     loss = criterion(outputs, labels)
+
+                    if margin_loss:
+                        m_loss = 0.0
+                        for idx, item in enumerate(batch_indices):
+                            label = self.y_train[item]
+                            max_index = None
+                            max_value = -1.0
+                            for j in range(self.num_labels):
+                                if outputs[idx, j].item() < max_value or j == label:
+                                    continue
+                                else:
+                                    max_value = outputs[idx, j]
+                                    max_index = j
+
+                            m_loss += (outputs[idx, label] - outputs[idx, max_index]) ** 2
+
                     optimizer.zero_grad()
-                    loss.backward()
+
+                    if margin_loss:
+                        new_loss = loss + (1 / margin_loss)
+                        new_loss.backward()
+                    else:
+                        loss.backward()
+
                     optimizer.step()
                     penalty_inside_box = torch.tensor(0).to(self.device)
                     penalty_outside_box = torch.tensor(0).to(self.device)
 
-                train_loss += loss.item()
+                if margin_loss:
+                    train_loss += new_loss.item()
+                else:
+                    train_loss += loss.item()
+
                 train_correct += torch.sum(preds == labels).float().item()
                 penalty_inside += penalty_inside_box.item() * lambda_1
                 penalty_outside += penalty_outside_box.item() * lambda_2
