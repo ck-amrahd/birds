@@ -11,9 +11,9 @@ test_robust_file_3 = 'adversarial/test_robust_exp3.pickle'
 test_robust_file_4 = 'adversarial/test_robust_exp4.pickle'
 
 # resnet 101
-test_robust_file_5 = 'adversarial/test_robust_exp5.pickle'
-test_robust_file_6 = 'adversarial/test_robust_exp6.pickle'
-test_robust_file_7 = 'adversarial/test_robust_exp7.pickle'
+test_robust_file_5 = '/home/user/Models/Experiment-5/Results/test_robust_exp5.pickle'
+test_robust_file_6 = '/home/user/Models/Experiment-6/Result/test_robust_exp6.pickle'
+test_robust_file_7 = '/home/user/Models/Experiment-7/Result/test_robust_exp7.pickle'
 
 # resnet 50
 # test_robust_acc_1 = pickle.load(open(test_robust_file_1, 'rb'))
@@ -26,6 +26,7 @@ test_robust_acc_5 = pickle.load(open(test_robust_file_5, 'rb'))
 test_robust_acc_6 = pickle.load(open(test_robust_file_6, 'rb'))
 test_robust_acc_7 = pickle.load(open(test_robust_file_7, 'rb'))
 
+"""
 for model_class, robust_acc in test_robust_acc_7.items():
     if model_class == 'lambda_vary' or model_class == 'lambda_equal':
         plt.plot(epsilons, robust_acc, label=model_class)
@@ -34,6 +35,7 @@ plt.legend()
 plt.show()
 
 exit()
+"""
 
 # average graph between experiments
 
@@ -97,6 +99,14 @@ for model_class, robust_acc in test_robust_acc_6.items():
     else:
         continue
 
+for model_class, robust_acc in test_robust_acc_7.items():
+    if model_class == 'lambda_vary':
+        robust_acc_vary.append(robust_acc)
+    elif model_class == 'lambda_equal':
+        robust_acc_equal.append(robust_acc)
+    else:
+        continue
+
 robust_acc_vary = np.vstack(robust_acc_vary)
 robust_acc_equal = np.vstack(robust_acc_equal)
 
@@ -114,10 +124,10 @@ equal_mean = np.mean(robust_acc_equal, axis=0)
 equal_std = np.std(robust_acc_equal, axis=0)
 
 fig, ax = plt.subplots()
-ax.plot(epsilons, vary_mean)
+ax.plot(epsilons, vary_mean, label='vary')
 ax.fill_between(epsilons, (vary_mean - vary_std), (vary_mean + vary_std), color='b', alpha=0.2)
 
-ax.plot(epsilons, equal_mean)
+ax.plot(epsilons, equal_mean, label='equal')
 ax.fill_between(epsilons, (equal_mean - equal_std), (equal_mean + equal_std), color='r', alpha=0.2)
-
+plt.legend()
 plt.show()

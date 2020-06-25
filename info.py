@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-info_file = 'adversarial/all_info_exp7.pickle'
+info_file = '/home/user/Models/Experiment-7/Result/all_info_exp7.pickle'
 num_epsilons = 10
 epsilons = np.linspace(0, 0.2, num=num_epsilons)
 

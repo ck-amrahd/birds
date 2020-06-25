@@ -37,7 +37,7 @@ lambda_2 = float(sys.argv[5])
 optimizer = 'SGD'
 # optimizer = 'Adam'
 
-model_name = 'resnet101'
+model_name = 'resnet50'
 start_from_pretrained_model = True
 
 # set grad_loss_input = True to calculate gradient of loss wrt input
