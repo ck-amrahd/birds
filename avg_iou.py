@@ -14,7 +14,7 @@ import multiprocessing
 start = time.time()
 
 # constants
-results_file = 'avg_iou.pickle'
+results_file = 'iou/avg_iou.pickle'
 test_folder_path = 'data/test'
 images_text_file = 'data/images.txt'
 bounding_box_file = 'data/bounding_boxes.txt'

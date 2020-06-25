@@ -64,6 +64,13 @@ width = 224
 # number of epochs to train for each train_image_indices
 batch_size = 32
 
+
+transform = transforms.Compose([
+    transforms.Resize((height, width)),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+])
+
 if not os.path.exists(results_folder):
     os.makedirs(results_folder)
 
