@@ -14,11 +14,11 @@ bounding_box_file = 'data/bounding_boxes.txt'
 height = 224
 width = 224
 
-img_path = 'data/test/002.Laysan_Albatross/Laysan_Albatross_0005_565.jpg'
-# checkpoint_path = '/home/user/Models/Experiment-4/BboxL1L2/resnet50/pth_files/bbox_1000.0_46.42.pth'
+img_path = 'data/test/002.Laysan_Albatross/Laysan_Albatross_0033_658.jpg'
+checkpoint_path = '/home/user/Models/Experiment-4/BboxL1L2/resnet50/pth_files/bbox_1000.0_21.54.pth'
 # checkpoint_path = '/home/user/Models/Experiment-4/BboxL1L2/resnet50/pth_files/bbox_0.0_100.0.pth'
 # checkpoint_path = '/home/user/Models/Experiment-4/BboxEqualL1L2/resnet50/pth_files/bbox_1000.0_1000.0.pth'
-checkpoint_path = '/home/user/Models/Experiment-4/Normal/resnet50/pth_files/normal_0.0_0.0.pth'
+# checkpoint_path = '/home/user/Models/Experiment-4/Normal/resnet50/pth_files/normal_0.0_0.0.pth'
 
 target_tensor = torch.tensor([1])
 num_labels = 200
@@ -126,5 +126,7 @@ else:
     iou = 0.0
 
 print(f'iou: {round(iou, 2)}')
+# calculate saliency score
+
 plt.imshow(orig_img)
 plt.show()

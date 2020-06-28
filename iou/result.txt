@@ -1,0 +1,8 @@
+validation:
+normal: normal_0.0_0.0.pth : 0.44399872056882567
+best_equal: bbox_464.16_464.16.pth : 0.5588173721624803
+best_vary: bbox_1000.0_21.54.pth : 0.5815107111435888
+
+Test:
+test_equal: 0.5639483439438402
+test_vary: 0.5872359124270188

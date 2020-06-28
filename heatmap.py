@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-info_file = 'adversarial/all_info_exp6.pickle'
+info_file = '/home/user/Models/Experiment-7/Result/all_info_exp7.pickle'
 epsilons = np.linspace(0, 0.2, num=10)
 
 value_index = {'0.0': 0, '0.1': 1, '0.22': 2, '0.46': 3, '1.0': 4, '2.15': 5, '4.64': 6, '10.0': 7, '21.54': 8,
@@ -20,7 +20,7 @@ for index, epsilon in enumerate(epsilons):
 
         normal = info['normal']
         robust_acc = normal['normal_0.0_0.0'].cpu().numpy()
-        heatmap_array[:, 0] = robust_acc[index]
+        heatmap_array[0][0] = robust_acc[index]
 
         lambda_equal = info['lambda_equal']
         for model_name, robust_acc in lambda_equal.items():

@@ -22,4 +22,5 @@ x_axis_labels = [0.0, 0.1, 0.22, 0.46, 1.0, 2.15, 4.64, 10.0, 21.54, 46.42, 100.
 y_axis_labels = [0.0, 0.1, 0.22, 0.46, 1.0, 2.15, 4.64, 10.0, 21.54, 46.42, 100.0, 215.44, 464.16, 1000.0]
 ax = sns.heatmap(heatmap_array, annot=True, xticklabels=x_axis_labels, yticklabels=y_axis_labels, linewidths=0.5)
 ax.set(xlabel='lambda_2', ylabel='lambda_1')
+plt.savefig('iou/heatmap_exp4.png', format='png')
 plt.show()

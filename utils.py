@@ -142,3 +142,4 @@ def load_model(checkpoint_path, num_labels, gpu_id):
     model = model.to(device)
     model.eval()
     return model
+
