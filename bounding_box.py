@@ -71,3 +71,13 @@ class BoundingBox:
         x1, y1, x2, y2 = int(x_scaled), int(y_scaled), int(x_scaled + w_scaled), int(y_scaled + h_scaled)
 
         return x1, y1, x2, y2
+
+    def get_bbox_from_path_unscaled(self, img_path):
+        img = cv2.imread(img_path)
+        height, width, channels = img.shape
+        image_name = img_path.rsplit('/', 1)[-1]
+        image_id = self.imgNameToId[image_name.lower()]
+        x, y, w, h = self.idToBbox[image_id]
+        x, y, w, h = float(x), float(y), float(w), float(h)
+        x1, y1, x2, y2 = int(x), int(y), int(x + w), int(y + h)
+        return x1, y1, x2, y2
