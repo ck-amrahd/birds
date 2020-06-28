@@ -13,12 +13,11 @@ import multiprocessing
 
 start = time.time()
 
-
 # constants
 checkpoint_folder = '/home/user/Models/Experiment-4/All/resnet50'
 val_folder_path = '/home/user/Models/Experiment-4/data/val'
 
-result_file = 'iou/avg_iou.pickle'
+result_file = 'iou/avg_iou_loc.pickle'
 
 images_text_file = 'data/images.txt'
 bounding_box_file = 'data/bounding_boxes.txt'
@@ -50,6 +49,8 @@ def calculate_iou(m_name, gp_id, r_dict):
     criterion = nn.CrossEntropyLoss()
     model = load_model(checkpoint_path, num_labels, gp_id)
     average_iou = []
+    correct = 0
+    num_img = 0
     for folder_name in subfolders:
         label = int(folder_name.split('.')[0]) - 1
         target_tensor = torch.tensor([label])
@@ -58,8 +59,8 @@ def calculate_iou(m_name, gp_id, r_dict):
             img_path = val_folder_path + '/' + folder_name + '/' + img_name
             x1_gt, y1_gt, x2_gt, y2_gt = bbox.get_bbox_from_path(img_path)
             gt = [x1_gt, y1_gt, x2_gt, y2_gt]
-            grad = predict(model, img_path, transform, criterion, target_tensor, height, width,
-                           num_channels, gp_id)
+            prediction, grad = predict(model, img_path, transform, criterion, target_tensor, height, width,
+                                       num_channels, gp_id)
             pred = bounding_box_grad(grad)
             overlap = check_overlap(pred, gt)
             if overlap:
@@ -68,9 +69,14 @@ def calculate_iou(m_name, gp_id, r_dict):
                 iou = 0.0
 
             average_iou.append(iou)
+            num_img += 1
+            if prediction == label and iou >= 0.5:
+                correct += 1
 
     # print(f'{m_name}: {np.mean(average_iou)}')
-    r_dict[m_name] = np.mean(average_iou)
+    loc_acc = float(correct) / float(num_img)
+    avg_iou = np.mean(average_iou)
+    r_dict[m_name] = [avg_iou, loc_acc]
 
 
 def generator_from_list(lst, n):

@@ -16,6 +16,7 @@ def predict(model, img_path, transform, criterion, target_tensor, height, width,
     inputs, target_tensor = inputs.to(device), target_tensor.to(device)
     inputs.requires_grad_()
     output = model(inputs)
+    prediction = torch.argmax(output, dim=1).item()
     model.zero_grad()
     loss = criterion(output, target_tensor)
     loss.backward()
@@ -29,4 +30,4 @@ def predict(model, img_path, transform, criterion, target_tensor, height, width,
     grad = grad - grad.min()
     grad /= grad.max()
 
-    return grad
+    return prediction, grad
