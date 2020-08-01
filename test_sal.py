@@ -1,13 +1,15 @@
 import pickle
 import os
 import torch
-from bounding_box import BoundingBox
 from torchvision import transforms
 import numpy as np
 import cv2
 from PIL import Image
 from utils import load_model
-import torch.nn.functional as F
+import torch.nn.functional as f
+import torch.nn as nn
+from utils import bounding_box_grad
+from predict import predict
 
 source_file = 'saliency/saliency.pickle'
 test_folder_path = '/home/user/Models/Experiment-4/data/test'
@@ -43,12 +45,11 @@ print(f'normal: {normal}: {normal_value}')
 print(f'best_equal: {best_equal}: {best_equal_value}')
 print(f'best_vary: {best_vary}: {best_vary_value}')
 
-images_text_file = 'data/images.txt'
-bounding_box_file = 'data/bounding_boxes.txt'
-
 height = 224
 width = 224
+num_channels = 3
 num_labels = 200
+
 checkpoint_folder = '/home/user/Models/Experiment-4/All/resnet50'
 gpu_id = '0'
 device = torch.device('cuda:' + gpu_id if torch.cuda.is_available() else 'cpu')
@@ -61,29 +62,6 @@ transform = transforms.Compose([
 ])
 
 subfolders = sorted(os.listdir(test_folder_path))
-bbox = BoundingBox(test_folder_path, images_text_file, bounding_box_file, height, width)
-
-
-def preprocess(im_path):
-    x1_gt, y1_gt, x2_gt, y2_gt = bbox.get_bbox_from_path_unscaled(im_path)
-    orig_img = cv2.imread(im_path)
-    orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
-    orig_height, orig_width, orig_channels = orig_img.shape
-    original_area = orig_height * orig_width
-    crop_img = orig_img[y1_gt:y2_gt, x1_gt:x2_gt]
-    crop_img = cv2.resize(crop_img, (height, width))
-    crop_area = height * width
-    # a_hat is the ratio of cropped region to total area
-    a_hat = crop_area / original_area
-
-    inp = torch.zeros(1, 3, 224, 224)
-    # img = Image.open(img_path)
-    img = Image.fromarray(crop_img)
-    if img.mode == 'L':
-        img = img.convert('RGB')
-    img_tensor = transform(img)
-    inp[0] = img_tensor
-    return inp, a_hat
 
 
 def calculate_saliency(m_name):
@@ -91,22 +69,41 @@ def calculate_saliency(m_name):
     model = load_model(checkpoint_path, num_labels, gpu_id)
     model.eval()
     avg_sal = []
-    inputs, a_hat = None, None
+    criterion = nn.CrossEntropyLoss()
     for folder_name in subfolders:
         label = int(folder_name.split('.')[0]) - 1
         target_tensor = torch.tensor([label])
         image_names = os.listdir(test_folder_path + '/' + folder_name)
         for img_name in image_names:
             img_path = test_folder_path + '/' + folder_name + '/' + img_name
-            inputs, a_hat = preprocess(img_path)
-        with torch.no_grad():
-            inputs = inputs.to(device)
-            output = model(inputs)
-            probabilities = F.softmax(output, dim=1)
-            p = probabilities[0, label].item()
+            prediction, grad = predict(model, img_path, transform, criterion, target_tensor, height, width,
+                                       num_channels, gpu_id)
+            pred = bounding_box_grad(grad)
+            x1, y1, x2, y2 = pred
+            original_area = 224 * 224
+            crop_area = (x2 - x1) * (y2 - y1)
+            a_hat = crop_area / original_area
+            a_hat = max(0.05, a_hat)
+            orig_img = cv2.imread(img_path)
+            orig_img = cv2.resize(orig_img, (height, width))
+            orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
+            crop_img = orig_img[y1:y2, x1:x2]
 
-        saliency_metric = np.log(a_hat) - np.log(p)
-        avg_sal.append(saliency_metric)
+            inp = torch.zeros(1, num_channels, height, width)
+            img = Image.fromarray(crop_img)
+            if img.mode == 'L':
+                img = img.convert('RGB')
+            img_tensor = transform(img)
+            inp[0] = img_tensor
+
+            with torch.no_grad():
+                inp = inp.to(device)
+                output = model(inp)
+                probabilities = f.softmax(output, dim=1)
+                prob = probabilities[0, label].item()
+
+            saliency_metric = np.log(a_hat) - np.log(prob)
+            avg_sal.append(saliency_metric)
 
     return np.average(avg_sal)
 
@@ -119,4 +116,3 @@ print('Test')
 print(f'normal: {test_normal}')
 print(f'test_equal: {test_equal} ')
 print(f'test_vary: {test_vary}')
-

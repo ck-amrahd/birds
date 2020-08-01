@@ -17,7 +17,7 @@ width = 224
 img_path = 'data/test/036.Northern_Flicker/Northern_Flicker_0059_28488.jpg'
 # checkpoint_path = '/home/user/Models/Experiment-4/BboxL1L2/pth_files/bbox_1000.0_21.54.pth'
 # checkpoint_path = '/home/user/Models/Experiment-4/BboxEqualL1L2/pth_files/bbox_464.16_464.16.pth'
-checkpoint_path = '/home/user/Models/Experiment-4/Normal/pth_files/normal_0.0_0.0.pth'
+checkpoint_path = '/home/user/Models/birds/Experiment-4/Normal/pth_files/normal_0.0_0.0.pth'
 
 target_tensor = torch.tensor([35])
 num_labels = 200

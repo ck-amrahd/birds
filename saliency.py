@@ -1,28 +1,33 @@
 import numpy as np
 import torch
-from PIL import Image
+import torch.nn as nn
 from torchvision import transforms
-import cv2
-from bounding_box import BoundingBox
-import torch.nn.functional as F
 import os
-from utils import load_model
+import time
 import pickle
 from pprint import pprint
-import time
-
+from utils import bounding_box_grad, load_model
+from predict import predict
+import multiprocessing
+import cv2
+from PIL import Image
+import torch.nn.functional as f
 
 start = time.time()
+
+# constants
+checkpoint_folder = '/home/user/Models/Experiment-4/All/resnet50'
 val_folder_path = '/home/user/Models/Experiment-4/data/val'
+
+result_file = 'saliency/saliency.pickle'
+
 images_text_file = 'data/images.txt'
 bounding_box_file = 'data/bounding_boxes.txt'
+
 height = 224
 width = 224
+num_channels = 3
 num_labels = 200
-result_file = 'saliency/saliency.pickle'
-checkpoint_folder = '/home/user/Models/Experiment-4/All/resnet50'
-gpu_id = '0'
-device = torch.device('cuda:' + gpu_id if torch.cuda.is_available() else 'cpu')
 
 all_models = []
 for file_name in os.listdir(checkpoint_folder):
@@ -30,67 +35,95 @@ for file_name in os.listdir(checkpoint_folder):
         all_models.append(file_name)
 
 print('Running...')
+print(f'Total models: {len(all_models)}')
 transform = transforms.Compose([
     transforms.Resize((height, width)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-bbox = BoundingBox(val_folder_path, images_text_file, bounding_box_file, height, width)
 subfolders = sorted(os.listdir(val_folder_path))
 
 
-def preprocess(im_path):
-    x1_gt, y1_gt, x2_gt, y2_gt = bbox.get_bbox_from_path_unscaled(im_path)
-    orig_img = cv2.imread(im_path)
-    orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
-    orig_height, orig_width, orig_channels = orig_img.shape
-    original_area = orig_height * orig_width
-    crop_img = orig_img[y1_gt:y2_gt, x1_gt:x2_gt]
-    crop_img = cv2.resize(crop_img, (height, width))
-    crop_area = height * width
-    # a_hat is the ratio of cropped region to total area
-    a_hat = crop_area / original_area
-
-    inp = torch.zeros(1, 3, 224, 224)
-    # img = Image.open(img_path)
-    img = Image.fromarray(crop_img)
-    if img.mode == 'L':
-        img = img.convert('RGB')
-    img_tensor = transform(img)
-    inp[0] = img_tensor
-    return inp, a_hat
-
-
-results = {}
-for model_name in all_models:
-    checkpoint_path = checkpoint_folder + '/' + model_name
-    model = load_model(checkpoint_path, num_labels, gpu_id)
-    model.eval()
+def calculate_sal(m_name, gp_id, r_dict):
+    checkpoint_path = checkpoint_folder + '/' + m_name
+    criterion = nn.CrossEntropyLoss()
+    model = load_model(checkpoint_path, num_labels, gp_id)
+    device = torch.device('cuda:' + gp_id)
     avg_sal = []
-    inputs, a_hat = None, None
     for folder_name in subfolders:
         label = int(folder_name.split('.')[0]) - 1
         target_tensor = torch.tensor([label])
         image_names = os.listdir(val_folder_path + '/' + folder_name)
         for img_name in image_names:
             img_path = val_folder_path + '/' + folder_name + '/' + img_name
-            inputs, a_hat = preprocess(img_path)
-        with torch.no_grad():
-            inputs = inputs.to(device)
-            output = model(inputs)
-            probabilities = F.softmax(output, dim=1)
-            p = probabilities[0, label].item()
+            prediction, grad = predict(model, img_path, transform, criterion, target_tensor, height, width,
+                                       num_channels, gp_id)
+            pred = bounding_box_grad(grad)
+            x1, y1, x2, y2 = pred
+            original_area = 224 * 224
+            crop_area = (x2 - x1) * (y2 - y1)
+            a_hat = crop_area / original_area
+            a_hat = max(0.05, a_hat)
+            orig_img = cv2.imread(img_path)
+            orig_img = cv2.resize(orig_img, (height, width))
+            orig_img = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
+            crop_img = orig_img[y1:y2, x1:x2]
 
-        saliency_metric = np.log(a_hat) - np.log(p)
-        avg_sal.append(saliency_metric)
+            inp = torch.zeros(1, num_channels, height, width)
+            img = Image.fromarray(crop_img)
+            if img.mode == 'L':
+                img = img.convert('RGB')
+            img_tensor = transform(img)
+            inp[0] = img_tensor
 
-    results[model_name] = np.average(avg_sal)
+            with torch.no_grad():
+                inp = inp.to(device)
+                output = model(inp)
+                probabilities = f.softmax(output, dim=1)
+                prob = probabilities[0, label].item()
+
+            saliency_metric = np.log(a_hat) - np.log(prob)
+            avg_sal.append(saliency_metric)
+
+    r_dict[m_name] = np.mean(avg_sal)
+
+
+def generator_from_list(lst, n_size):
+    # generates n sized chunk from the given list
+    for i in range(0, len(lst), n_size):
+        yield lst[i:i + n_size]
+
+
+# test call for breakpoint
+# calculate_sal(all_models[0], '0', dict())
+# exit()
+
+manager = multiprocessing.Manager()
+return_dict = manager.dict()
+jobs = []
+for idx, model_name in enumerate(all_models):
+    gpu_id = str(idx % 4)
+    p = multiprocessing.Process(target=calculate_sal, args=(model_name, gpu_id, return_dict))
+    jobs.append(p)
+
+n = 4
+counter = 0
+for chunks in generator_from_list(jobs, n):
+    for proc in chunks:
+        proc.start()
+
+    for p in chunks:
+        p.join()
+
+    counter += n
+    print(f'{counter} models done.')
 
 with open(result_file, 'wb') as write_file:
-    pickle.dump(results, write_file)
+    pickle.dump(dict(return_dict), write_file)
 
-pprint(results)
+pprint(dict(return_dict))
+
 end = time.time()
-minutes = (end - start) / 60.0
-print(f'Time: {round(minutes, 2)} Minutes')
+elapsed_minutes = (end - start) / 60
+print(f'elapsed-minutes: {round(elapsed_minutes, 2)}')

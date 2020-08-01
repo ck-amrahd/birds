@@ -4,32 +4,19 @@ import numpy as np
 
 epsilons = np.linspace(0, 0.2, num=10)
 
-# resnet 50
-test_robust_file_1 = 'adversarial/test_robust_exp1.pickle'
-test_robust_file_2 = 'adversarial/test_robust_exp2.pickle'
-test_robust_file_3 = 'adversarial/test_robust_exp3.pickle'
-test_robust_file_4 = 'adversarial/test_robust_exp4.pickle'
+test_robust_file_2 = '/home/user/Models/birds/Experiment-2/Results/test_robust_exp2.pickle'
+test_robust_file_3 = '/home/user/Models/birds/Experiment-3/Results/test_robust_exp3.pickle'
+test_robust_file_4 = '/home/user/Models/birds/Experiment-4/Results/test_robust_exp4.pickle'
 
-# resnet 101
-test_robust_file_5 = '/home/user/Models/Experiment-5/Results/test_robust_exp5.pickle'
-test_robust_file_6 = '/home/user/Models/Experiment-6/Result/test_robust_exp6.pickle'
-test_robust_file_7 = '/home/user/Models/Experiment-7/Result/test_robust_exp7.pickle'
-
-# resnet 50
-# test_robust_acc_1 = pickle.load(open(test_robust_file_1, 'rb'))
-# test_robust_acc_2 = pickle.load(open(test_robust_file_2, 'rb'))
-# test_robust_acc_3 = pickle.load(open(test_robust_file_3, 'rb'))
-# test_robust_acc_4 = pickle.load(open(test_robust_file_4, 'rb'))
-
-# resnet 101
-test_robust_acc_5 = pickle.load(open(test_robust_file_5, 'rb'))
-test_robust_acc_6 = pickle.load(open(test_robust_file_6, 'rb'))
-test_robust_acc_7 = pickle.load(open(test_robust_file_7, 'rb'))
+test_robust_acc_2 = pickle.load(open(test_robust_file_2, 'rb'))
+test_robust_acc_3 = pickle.load(open(test_robust_file_3, 'rb'))
+test_robust_acc_4 = pickle.load(open(test_robust_file_4, 'rb'))
 
 """
-for model_class, robust_acc in test_robust_acc_7.items():
-    if model_class == 'lambda_vary' or model_class == 'lambda_equal':
-        plt.plot(epsilons, robust_acc, label=model_class)
+for model_class, robust_acc in test_robust_acc_4.items():
+    # if model_class == 'lambda_vary' or model_class == 'lambda_equal':
+    robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+    plt.plot(epsilons, robust_acc, label=model_class)
 
 plt.legend()
 plt.show()
@@ -37,21 +24,11 @@ plt.show()
 exit()
 """
 
-# average graph between experiments
-
 robust_acc_vary = []
 robust_acc_equal = []
+robust_acc_normal = []
+robust_acc_blackout = []
 
-""""
-for model_class, robust_acc in test_robust_acc_1.items():
-    if model_class == 'lambda_vary':
-        robust_acc_vary.append(robust_acc)
-    elif model_class == 'lambda_equal':
-        robust_acc_equal.append(robust_acc)
-    else:
-        continue
-"""
-"""
 for model_class, robust_acc in test_robust_acc_2.items():
     if model_class == 'lambda_vary':
         robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
@@ -59,6 +36,12 @@ for model_class, robust_acc in test_robust_acc_2.items():
     elif model_class == 'lambda_equal':
         robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
         robust_acc_equal.append(robust_acc)
+    elif model_class == 'normal':
+        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_normal.append(robust_acc)
+    elif model_class == 'blackout':
+        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_blackout.append(robust_acc)
     else:
         continue
 
@@ -69,6 +52,12 @@ for model_class, robust_acc in test_robust_acc_3.items():
     elif model_class == 'lambda_equal':
         robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
         robust_acc_equal.append(robust_acc)
+    elif model_class == 'normal':
+        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_normal.append(robust_acc)
+    elif model_class == 'blackout':
+        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_blackout.append(robust_acc)
     else:
         continue
 
@@ -79,43 +68,19 @@ for model_class, robust_acc in test_robust_acc_4.items():
     elif model_class == 'lambda_equal':
         robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
         robust_acc_equal.append(robust_acc)
-    else:
-        continue
-"""
-
-for model_class, robust_acc in test_robust_acc_5.items():
-    if model_class == 'lambda_vary':
-        robust_acc_vary.append(robust_acc)
-    elif model_class == 'lambda_equal':
-        robust_acc_equal.append(robust_acc)
-    else:
-        continue
-
-for model_class, robust_acc in test_robust_acc_6.items():
-    if model_class == 'lambda_vary':
-        robust_acc_vary.append(robust_acc)
-    elif model_class == 'lambda_equal':
-        robust_acc_equal.append(robust_acc)
-    else:
-        continue
-
-for model_class, robust_acc in test_robust_acc_7.items():
-    if model_class == 'lambda_vary':
-        robust_acc_vary.append(robust_acc)
-    elif model_class == 'lambda_equal':
-        robust_acc_equal.append(robust_acc)
+    elif model_class == 'normal':
+        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_normal.append(robust_acc)
+    elif model_class == 'blackout':
+        robust_acc = np.array([v for i, v in enumerate(robust_acc) if i % 2 == 0])
+        robust_acc_blackout.append(robust_acc)
     else:
         continue
 
 robust_acc_vary = np.vstack(robust_acc_vary)
 robust_acc_equal = np.vstack(robust_acc_equal)
-
-# robust_acc_vary = np.mean(robust_acc_vary, axis=0)
-# robust_acc_equal = np.mean(robust_acc_equal, axis=0)
-# plt.plot(epsilons, robust_acc_equal, label='lambda_equal')
-# plt.plot(epsilons, robust_acc_vary, label='lambda_vary')
-# plt.legend()
-# plt.show()
+robust_acc_normal = np.vstack(robust_acc_normal)
+robust_acc_blackout = np.vstack(robust_acc_blackout)
 
 vary_mean = np.mean(robust_acc_vary, axis=0)
 vary_std = np.std(robust_acc_vary, axis=0)
@@ -123,11 +88,24 @@ vary_std = np.std(robust_acc_vary, axis=0)
 equal_mean = np.mean(robust_acc_equal, axis=0)
 equal_std = np.std(robust_acc_equal, axis=0)
 
-fig, ax = plt.subplots()
-ax.plot(epsilons, vary_mean, label='vary')
-ax.fill_between(epsilons, (vary_mean - vary_std), (vary_mean + vary_std), color='b', alpha=0.2)
+normal_mean = np.mean(robust_acc_normal, axis=0)
+normal_std = np.std(robust_acc_normal, axis=0)
 
-ax.plot(epsilons, equal_mean, label='equal')
-ax.fill_between(epsilons, (equal_mean - equal_std), (equal_mean + equal_std), color='r', alpha=0.2)
+blackout_mean = np.mean(robust_acc_blackout, axis=0)
+blackout_std = np.std(robust_acc_blackout, axis=0)
+
+fig, ax = plt.subplots()
+ax.plot(epsilons, vary_mean, label='lambda vary')
+ax.fill_between(epsilons, (vary_mean - vary_std), (vary_mean + vary_std), alpha=0.3)
+
+ax.plot(epsilons, equal_mean, label='lambda equal')
+ax.fill_between(epsilons, (equal_mean - equal_std), (equal_mean + equal_std), alpha=0.3)
+
+ax.plot(epsilons, normal_mean, label='normal')
+ax.fill_between(epsilons, (normal_mean - normal_std), (normal_mean + normal_std), alpha=0.3)
+
+ax.plot(epsilons, blackout_mean, label='blackout')
+ax.fill_between(epsilons, (blackout_mean - blackout_std), (blackout_mean + blackout_std), alpha=0.3)
+
 plt.legend()
 plt.show()
