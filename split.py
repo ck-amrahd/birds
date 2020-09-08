@@ -40,6 +40,12 @@ total_train_val_images = 0
 total_val_images = 0
 total_test_images = 0
 
+train_counter = 0
+train_val_counter = 0
+val_counter = 0
+test_counter = 0
+
+
 for folder_name in folders:
 
     # for training images let's put everything in one place so that we can load them to RAM at first
@@ -93,32 +99,41 @@ for folder_name in folders:
     # copy images to respective folders for all train, train_val, val and test
 
     # copy train images
-    for img_name in train_images:
+    for img_name in train_images[::2]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = train_path + '/' + img_name
         shutil.copy(source_file, destination_file)
+        train_counter += 1
 
     # copy train_val images
-    for img_name in train_val_images:
+    for img_name in train_val_images[::2]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = train_val_path + '/' + folder_name + '/' + img_name
         shutil.copy(source_file, destination_file)
+        train_val_counter += 1
 
     # copy val images
-    for img_name in val_images:
+    for img_name in val_images[::2]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = val_path + '/' + folder_name + '/' + img_name
         shutil.copy(source_file, destination_file)
+        val_counter += 1
 
     # copy test images
-    for img_name in test_images:
+    for img_name in test_images[::2]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = test_path + '/' + folder_name + '/' + img_name
         shutil.copy(source_file, destination_file)
+        test_counter += 1
 
 print(f'total_train_images: {total_train_images}')
 print(f'total_train_val_images: {total_train_val_images}')
 print(f'total_val_images: {total_val_images}')
 print(f'total_test_images: {total_test_images}')
+
+print(f'total_train_images_copied: {train_counter}')
+print(f'total_train_val_images_copied: {train_val_counter}')
+print(f'total_val_images_copied: {val_counter}')
+print(f'total_test_images_copied: {test_counter}')
 
 print('Done')

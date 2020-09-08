@@ -7,11 +7,11 @@ from torchvision import datasets, models
 import pickle
 import matplotlib.pyplot as plt
 
-best_models_path = 'adversarial/best_models_exp7.pickle'
-models_path = '/home/user/Models/Experiment-7/All'
-test_robust_file = 'adversarial/test_robust_exp7.pickle'
+best_models_path = 'adversarial/best_models_exp1.pickle'
+models_path = '/home/user/Models/birds/Experiment-1/All'
+test_robust_file = 'adversarial/test_robust_exp1.pickle'
 
-test_dataset_path = 'data/test'
+test_dataset_path = '/home/user/Models/birds/Experiment-1/data/test'
 num_classes = 200
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -35,15 +35,14 @@ for model_class, models_list in best_models.items():
     test_robust_acc[model_class] = []
 
 # loop for each value of epsilons
-epsilons = np.linspace(0, 0.2, num=10)
+epsilons = np.linspace(0, 1, num=10)
 print('Running...')
 for idx, epsilon in enumerate(epsilons):
     for model_class, models_list in best_models.items():
         bounds = (0, 1)
         model_name = models_list[idx]
         model_path = models_path + '/' + model_name + '.pth'
-        # model = models.resnet50(pretrained=False)
-        model = models.resnet101(pretrained=False)
+        model = models.resnet50(pretrained=False)
         input_features = model.fc.in_features
         model.fc = nn.Linear(input_features, num_classes)
         model.load_state_dict(torch.load(model_path))
@@ -56,7 +55,7 @@ for idx, epsilon in enumerate(epsilons):
         for inputs, labels in test_loader:
             inputs, labels = inputs.to(device), labels.to(device)
             _, _, is_adv = attack(fmodel, inputs, labels, epsilons=epsilon)
-            robust_acc = 1 - is_adv.float().mean()
+            robust_acc = 1 - is_adv.float().mean(axis=-1)
             robust_acc_list.append(robust_acc.cpu().numpy())
 
         avg_acc = np.mean(robust_acc_list)

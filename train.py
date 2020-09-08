@@ -40,15 +40,6 @@ optimizer = 'SGD'
 model_name = 'resnet50'
 start_from_pretrained_model = True
 
-# set grad_loss_input = True to calculate gradient of loss wrt input
-# set grad_loss_input = False to calculate the gradient of prediction wrt input
-# integrated into bbox training procedure and will not work for other methods now
-grad_loss_input = True
-
-# margin_loss will penalize the small gap between label and second best prediction
-# This is integrated into normal training procedure - will not work now for bbox
-margin_loss = False
-
 results_folder = 'results'
 
 train_folder_path = 'data/train'
@@ -140,9 +131,7 @@ return_dict = model.train(train_image_indices, batch_size, num_epochs=num_epochs
                           train_method=train_method,
                           lambda_1=lambda_1, lambda_2=lambda_2,
                           start_from_pretrained_model=start_from_pretrained_model,
-                          learning_rate=learning_rate, optimizer=optimizer,
-                          grad_loss_input=grad_loss_input,
-                          margin_loss=margin_loss)
+                          learning_rate=learning_rate, optimizer=optimizer)
 
 # dump everything to pickle and save it
 # we don't use val set any more during training, just remove the last model
