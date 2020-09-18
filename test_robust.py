@@ -2,20 +2,21 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-epsilons = np.linspace(0, 1, num=10)
+epsilons = np.linspace(0, 0.2, num=10)
 
-test_robust_file_2 = 'adversarial/test_robust_exp1_fgsm.pickle'
+# test_robust_file_2 = 'adversarial/test_robust_exp1_fgsm.pickle'
 # test_robust_file_3 = '/home/user/Models/birds/Experiment-3/Results/test_robust_exp3.pickle'
 # test_robust_file_4 = '/home/user/Models/birds/Experiment-4/Results/test_robust_exp4.pickle'
+test_robust_file = 'adversarial/test_robust_exp3.pickle'
 
-test_robust_acc_2 = pickle.load(open(test_robust_file_2, 'rb'))
+test_robust_acc = pickle.load(open(test_robust_file, 'rb'))
 # test_robust_acc_3 = pickle.load(open(test_robust_file_3, 'rb'))
 # test_robust_acc_4 = pickle.load(open(test_robust_file_4, 'rb'))
 
 
-for model_class, robust_acc in test_robust_acc_2.items():
-    if model_class == 'lambda_vary' or model_class == 'lambda_equal':
-        plt.plot(epsilons, robust_acc, label=model_class)
+for model_class, robust_acc in test_robust_acc.items():
+    # if model_class == 'lambda_vary' or model_class == 'lambda_equal':
+    plt.plot(epsilons, robust_acc, label=model_class)
 
 plt.legend()
 plt.show()

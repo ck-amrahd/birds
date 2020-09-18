@@ -99,28 +99,28 @@ for folder_name in folders:
     # copy images to respective folders for all train, train_val, val and test
 
     # copy train images
-    for img_name in train_images[::2]:
+    for img_name in train_images[::4]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = train_path + '/' + img_name
         shutil.copy(source_file, destination_file)
         train_counter += 1
 
     # copy train_val images
-    for img_name in train_val_images[::2]:
+    for img_name in train_val_images[::4]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = train_val_path + '/' + folder_name + '/' + img_name
         shutil.copy(source_file, destination_file)
         train_val_counter += 1
 
     # copy val images
-    for img_name in val_images[::2]:
+    for img_name in val_images[::4]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = val_path + '/' + folder_name + '/' + img_name
         shutil.copy(source_file, destination_file)
         val_counter += 1
 
     # copy test images
-    for img_name in test_images[::2]:
+    for img_name in test_images[::4]:
         source_file = images_path + '/' + folder_name + '/' + img_name
         destination_file = test_path + '/' + folder_name + '/' + img_name
         shutil.copy(source_file, destination_file)
