@@ -18,8 +18,8 @@ start = time.time()
 # one for normal, another for blackout, another for lamda_1=0 and varying lambda_2
 # another for lambda_1=lambda_2 and another for varying lambda_1 and lambda_2
 
-log_path = 'adversarial/all_info_exp3.pickle'
-experiment_folder = '/home/user/Models/birds/Experiment-3/'
+log_path = 'adversarial/all_info_exp4.pickle'
+experiment_folder = '/home/user/Models/birds/Experiment-4/'
 
 # put lambda_1_zero into lambda_vary and create four classes
 # 'lambda_1_zero': experiment_folder + 'BboxL10/resnet50/pth_files',
@@ -54,7 +54,7 @@ all_info = {}
 for train_method, folder_path in model_folders.items():
     models_list = os.listdir(folder_path)
     bounds = (0, 1)
-    epsilons = np.linspace(0, 1, num=10)
+    epsilons = np.linspace(0, 0.2, num=10)
     info = {}
     print(f'Running Attacks...')
     for model_name in models_list:
