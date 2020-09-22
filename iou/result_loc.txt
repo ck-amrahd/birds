@@ -1,9 +1,11 @@
 Validation
 normal: normal_0.0_0.0.pth : 0.2787878787878788
+blackout: blackout_0.0_0.0.pth : 0.289764532156
 best_equal: bbox_215.44_215.44.pth : 0.3106060606060606
 best_vary: bbox_464.16_4.64.pth : 0.34949494949494947
 
 Test
 'test_equal': 0.335423197492163
 'test_normal': 0.26489028213166144
+'test_blackout': 0.2937649827615
 'test_vary': 0.3594566353187043

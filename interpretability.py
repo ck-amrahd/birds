@@ -9,9 +9,9 @@ import cv2
 
 # try - grayscale [image x gradient]
 
-img_path = 'viz_images/1.jpg'
-checkpoint_path = '/home/user/Models/Experiment-4/Blackout/resnet50/pth_files/blackout_0.0_0.0.pth'
-target_tensor = torch.tensor([1])
+img_path = 'viz_images/test.jpg'
+checkpoint_path = '/home/user/Models/birds/Experiment-1/Blackout/pth_files/blackout_0.0_0.0.pth'
+target_tensor = torch.tensor([145])
 num_labels = 200
 
 print('Running...')
@@ -61,12 +61,14 @@ inp_grad = inp_grad - inp_grad.min()
 inp_grad /= inp_grad.max()
 # transpose from [C, H, W] to [H, W, C]
 grad = inp_grad.numpy().transpose(1, 2, 0)
-grad_gray = np.dot(grad[..., :3], [0.2989, 0.5870, 0.1140])
+# grad_gray = np.dot(grad[..., :3], [0.2989, 0.5870, 0.1140])
 # inp_grad *= 255
 # inp_grad = inp_grad.astype(np.uint8)
-# plt.imshow(grad)
-# plt.show()
+plt.imshow(grad)
+plt.show()
 
+
+""""
 minVal1, maxVal1, minLoc1, maxLoc1 = cv2.minMaxLoc(grad_gray)
 x1, y1 = maxLoc1
 
@@ -136,3 +138,4 @@ plt.show()
 # img = Image.fromarray(img)
 # plt.imshow(img, cmap='hot')
 # plt.show()
+"""
