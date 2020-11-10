@@ -7,11 +7,11 @@ from torchvision import datasets, models
 import pickle
 import matplotlib.pyplot as plt
 
-best_models_path = 'adversarial/best_models_exp4.pickle'
-models_path = '/home/user/Models/birds/Experiment-4/All'
-test_robust_file = 'adversarial/test_robust_exp4.pickle'
+best_models_path = 'adversarial/best_models_exp6.pickle'
+models_path = '/home/user/Models/birds/Experiment-6/All'
+test_robust_file = 'adversarial/test_robust_exp6.pickle'
 
-test_dataset_path = '/home/user/Models/birds/Experiment-4/data/test'
+test_dataset_path = '/home/user/Models/birds/Experiment-6/data/test'
 num_classes = 200
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -35,7 +35,7 @@ for model_class, models_list in best_models.items():
     test_robust_acc[model_class] = []
 
 # loop for each value of epsilons
-epsilons = np.linspace(0, 1, num=10)
+epsilons = np.linspace(0, 0.2, num=10)
 print('Running...')
 for idx, epsilon in enumerate(epsilons):
     for model_class, models_list in best_models.items():
