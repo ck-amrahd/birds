@@ -3,7 +3,8 @@ NeurIPS workshop on Interpretable Inductive Biases and Physically Structured Lea
 
 If you use this code please cite:
 
-@article{dharmaimproving,
-  title={Improving the trustworthiness of image classification models by utilizing bounding-box annotations},
-  author={Dharma, KC and Zhang, Chicheng}
-}
+
+    @article{dharmaimproving,
+      title={Improving the trustworthiness of image classification models by utilizing bounding-box annotations},
+      author={Dharma, KC and Zhang, Chicheng}
+    }
