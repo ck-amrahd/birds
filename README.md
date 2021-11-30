@@ -4,7 +4,10 @@ NeurIPS workshop on Interpretable Inductive Biases and Physically Structured Lea
 If you use this code please cite:
 
 
-    @article{dharmaimproving,
+    @article{kc2021improving,
       title={Improving the trustworthiness of image classification models by utilizing bounding-box annotations},
-      author={Dharma, KC and Zhang, Chicheng}
+      author={KC, Dharma and Zhang, Chicheng},
+      journal={arXiv preprint arXiv:2108.10131},
+      year={2021}
     }
+
